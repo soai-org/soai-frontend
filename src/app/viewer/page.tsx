@@ -21,25 +21,25 @@ function ViewerPage() {
       </main>
 
       {/* Right Sidebar */}
-      <aside className="w-80 bg-white dark:bg-gray-800 p-4 shadow-lg">
-        <Card>
+      <aside className="w-80 bg-secondary p-4 shadow-lg text-white">
+        <Card className="bg-secondary border-gray-600">
           <CardHeader>
             <CardTitle>Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <h3 className="font-semibold">Information</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-400">
                 Details about the selected item will appear here.
               </p>
             </div>
-            <Separator />
+            <Separator className="bg-gray-600" />
             <div>
               <h3 className="font-semibold">Actions</h3>
               <div className="flex flex-col space-y-2 mt-2">
-                <Button variant="outline">Action 1</Button>
-                <Button variant="outline">Action 2</Button>
-                <Button>Save Changes</Button>
+                <Button variant="outline" className="text-white border-gray-600 hover:bg-gray-700 hover:text-white">Action 1</Button>
+                <Button variant="outline" className="text-white border-gray-600 hover:bg-gray-700 hover:text-white">Action 2</Button>
+                <Button className="bg-primary hover:bg-primary/90">Save Changes</Button>
               </div>
             </div>
           </CardContent>
