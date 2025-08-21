@@ -123,7 +123,7 @@ export function AppSidebar({ onDataRequest }: AppSidebarProps) {
                 </p>
               </div>
               <Button className="w-full" onClick={handleDataRequest}>
-                관련 데��터 요청
+                관련 데이터 요청
               </Button>
             </>
           ) : (

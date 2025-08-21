@@ -94,17 +94,19 @@ export default function Home() {
   return (
     <SidebarProvider>
       <AppSidebar onDataRequest={handleDataRequest} />
-      <main className="flex flex-col flex-1 p-4 justify-center items-center mx-auto">
-        <SidebarTrigger />
-        <h1 className="text-2xl font-bold mb-4">
-          {selectedPatientForImages
-            ? `${selectedPatientForImages.name} 환자의 의료 이미지`
-            : "환자를 선택하여 의료 이미지를 확인하세요."}
-        </h1>
+      <main className="flex flex-col flex-1 p-4">
+        <div className="flex items-center mb-4">
+          <SidebarTrigger />
+          <h1 className="text-2xl font-bold ml-4 text-center flex-1">
+            {selectedPatientForImages
+              ? `${selectedPatientForImages.name} 환자의 의료 이미지`
+              : "환자를 선택하여 의료 이미지를 확인하세요."}
+          </h1>
+        </div>
 
         {selectedPatientForImages && (
-          <div className="flex-1 flex flex-col">
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-4">
+          <div className="flex-1 flex flex-col w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               {currentImages.length > 0 ? (
                 currentImages.map((image) => (
                   <div
