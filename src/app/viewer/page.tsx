@@ -4,46 +4,44 @@ import { ViewerSidebar } from "@/components/ViewerSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 
 function ViewerPage() {
+  const [selectedModel, setSelectedModel] = useState("model1");
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex h-screen  dark:bg-gray-900">
       {/* New Left Sidebar */}
       <ViewerSidebar />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col p-4 overflow-auto">
-        <div className="flex-1 bg-[#121212] rounded-lg shadow-md flex items-center justify-center">
+        <div className="flex-1 bg-background rounded-lg shadow-md flex items-center justify-center">
           <h1 className="text-2xl font-bold text-white">
             Main Content Area
           </h1>
         </div>
       </main>
 
-      {/* Right Sidebar */}
-      <aside className="w-80 bg-secondary p-4 shadow-lg text-white">
-        <Card className="bg-secondary border-gray-600">
-          <CardHeader>
-            <CardTitle>Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-semibold">Information</h3>
-              <p className="text-sm text-gray-400">
-                Details about the selected item will appear here.
-              </p>
-            </div>
-            <Separator className="bg-gray-600" />
-            <div>
-              <h3 className="font-semibold">Actions</h3>
-              <div className="flex flex-col space-y-2 mt-2">
-                <Button variant="outline" className="text-white border-gray-600 hover:bg-gray-700 hover:text-white">Action 1</Button>
-                <Button variant="outline" className="text-white border-gray-600 hover:bg-gray-700 hover:text-white">Action 2</Button>
-                <Button className="bg-primary hover:bg-primary/90">Save Changes</Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Right Sidebar - Metadata */}
+      <aside className="w-80 bg-secondary p-4 shadow-lg text-white overflow-y-auto">
+        <div className="space-y-6">
+          {/* Action Buttons */}
+          <div className="pt-4">
+              <h3 className="text-lg font-semibold mb-3">AI Model Selection</h3>
+              <Separator className="my-2"/>
+              <Select onValueChange={setSelectedModel} defaultValue={selectedModel}>
+                <SelectTrigger className="w-full bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-primary">
+                  <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 text-white border border-gray-600">
+                  <SelectItem value="model1">AI Model 1</SelectItem>
+                  <SelectItem value="model2">AI Model 2</SelectItem>
+                  <SelectItem value="model3">AI Model 3</SelectItem>
+                </SelectContent>
+              </Select>
+          </div>
+        </div>
       </aside>
     </div>
   );

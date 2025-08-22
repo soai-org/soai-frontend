@@ -27,17 +27,14 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen">
+    <main className="flex items-center bg-background justify-center min-h-screen">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account.
-          </CardDescription>
+          <CardTitle className="text-2xl text-center">로그인</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">이메일</Label>
             <Input
               id="email"
               type="email"
@@ -48,7 +45,7 @@ export default function LoginPage() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">패스워드</Label>
             <Input
               id="password"
               type="password"
@@ -60,7 +57,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter>
           <Button className="w-full" onClick={handleLogin}>
-            Sign in
+            로그인
           </Button>
         </CardFooter>
       </Card>
