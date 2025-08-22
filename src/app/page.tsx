@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { MapSidebar } from "@/components/MainSidebar";
 import { Button } from "@/components/ui/button";
 
 interface Patient {
@@ -93,7 +93,7 @@ export default function Home() {
 
   return (
     <SidebarProvider>
-      <AppSidebar onDataRequest={handleDataRequest} />
+      <MapSidebar onDataRequest={handleDataRequest} />
       <main className="flex flex-col flex-1 p-4">
         <div className="flex items-center mb-4">
           <SidebarTrigger />
