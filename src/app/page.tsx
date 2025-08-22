@@ -36,21 +36,21 @@ const getRandomDate = () => {
 const allMedicalImages: { [key: string]: MedicalImage[] } = {
   김철수: Array.from({ length: 20 }).map((_, i) => ({
     id: `kim-chul-soo-${i + 1}`,
-    url: `https://via.placeholder.com/150/FF0000/FFFFFF?text=김철수+이미지+${i + 1}`,
+    url: `https://placeholder.co/150/FF0000/FFFFFF?text=김철수+이미지+${i + 1}`,
     alt: `김철수 의료 이미지 ${i + 1}`,
     date: getRandomDate(),
     patientName: "김철수",
   })),
   이영희: Array.from({ length: 15 }).map((_, i) => ({
     id: `lee-young-hee-${i + 1}`,
-    url: `https://via.placeholder.com/150/0000FF/FFFFFF?text=이영희+이미지+${i + 1}`,
+    url: `https://placeholder.co/150/0000FF/FFFFFF?text=이영희+이미지+${i + 1}`,
     alt: `이영희 의료 이미지 ${i + 1}`,
     date: getRandomDate(),
     patientName: "이영희",
   })),
   박민수: Array.from({ length: 25 }).map((_, i) => ({
     id: `park-min-soo-${i + 1}`,
-    url: `https://via.placeholder.com/150/00FF00/FFFFFF?text=박민수+이미지+${i + 1}`,
+    url: `https://placeholder.co/150/00FF00/FFFFFF?text=박민수+이미지+${i + 1}`,
     alt: `박민수 의료 이미지 ${i + 1}`,
     date: getRandomDate(),
     patientName: "박민수",
