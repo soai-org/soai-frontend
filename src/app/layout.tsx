@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AuthProvider from "./AuthProvider";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import AuthProvider from "@/providers/AuthProvider";
 import QueryProvider from "@/providers/QueryProvider";
 
 const geistSans = Geist({
@@ -14,8 +13,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-const queryClient = new QueryClient();
 
 export const metadata: Metadata = {
   title: "Create Next App",

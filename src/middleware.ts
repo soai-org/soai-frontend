@@ -11,7 +11,7 @@ export default auth((req) => {
 });
 
 export const config = {
-  // Matcher protecting the root and viewer pages
+  // Matcher protecting the root, viewer and setting pages
   // This ensures that any access to these paths requires authentication
-  // matcher: ["/", "/viewer/:path*"],
+  matcher: ["/", "/viewer/:path*", "/setting/:path*"],
 };
