@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { LogOut, Settings } from "lucide-react";
+import Link from "next/link";
 import {
   Sidebar,
   SidebarContent,
@@ -46,9 +47,6 @@ export function MapSidebar({ onDataRequest }: AppSidebarProps) {
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <h2 className="text-xl font-semibold">메뉴</h2>
-      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <div className="mb-4">
@@ -69,7 +67,7 @@ export function MapSidebar({ onDataRequest }: AppSidebarProps) {
               }}
             />
           </div>
-          <div className="space-y-2 max-h-[50vh] overflow-y-auto mb-4">
+          <div className="space-y-2 max-h-[50vh] min-h-[50vh] overflow-y-auto mb-4">
             {isSuccessPatient ? (
               patients.map((patient, index) => (
                 <div
@@ -123,14 +121,12 @@ export function MapSidebar({ onDataRequest }: AppSidebarProps) {
             <LogOut className="mr-2 h-4 w-4" />
             로그아웃
           </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => alert("설정")}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            설정
-          </Button>
+          <Link href="/setting/users" passHref>
+            <Button variant="ghost" className="w-full justify-start">
+              <Settings className="mr-2 h-4 w-4" />
+              설정
+            </Button>
+          </Link>
         </div>
       </SidebarContent>
     </Sidebar>
