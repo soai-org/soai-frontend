@@ -12,7 +12,7 @@ interface NavItem {
   label: string;
 }
 
-export function ViewerSidebar() {
+export function ViewerLeftSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [active, setActive] = useState("Dashboard");
 
@@ -22,7 +22,7 @@ export function ViewerSidebar() {
 
   return (
     <aside
-      className={`flex flex-col h-screen bg-secondary text-white p-4 transition-all duration-300 ease-in-out ${
+      className={`absolute flex flex-col h-screen bg-secondary z-10 text-white p-4 transition-all duration-300 ease-in-out ${
         isCollapsed ? "w-20" : "w-64"
       }`}
     >

@@ -1,31 +1,23 @@
+"use client";
+
 import React, { useEffect, useRef } from "react";
 
 import {
   RenderingEngine,
   Enums,
-  imageLoader,
-  StackViewport,
   init as csCoreInit,
+  StackViewport,
 } from "@cornerstonejs/core";
-import { init as csToolInit } from "@cornerstonejs/tools";
+import {
+  init as csToolInit,
+  ToolGroupManager,
+  WindowLevelTool,
+  ZoomTool,
+  addTool,
+  Enums as csToolsEnums,
+} from "@cornerstonejs/tools";
 
-// import dicomImageLoader from "@cornerstonejs/dicom-image-loader";
 import { PublicViewportInput } from "@cornerstonejs/core/types";
-import axios from "axios";
-
-async function loadDCMFile(): Promise<ArrayBuffer> {
-  try {
-    const response = await axios.get("/dummy.dcm", {
-      responseType: "arraybuffer",
-    });
-
-    return response.data;
-  } catch (error) {
-    console.log("DCM 파일을 불러오는 데 실패했습니다.", error);
-
-    return new ArrayBuffer(0);
-  }
-}
 
 const DicomViewer = () => {
   const viewerElement = useRef<HTMLDivElement>(null);
@@ -46,24 +38,56 @@ const DicomViewer = () => {
         });
 
         cornerstoneDICOMImageLoader.current = dicomImageLoaderModule;
-        console.log(cornerstoneDICOMImageLoader.current);
-
-        const dcmFile = await loadDCMFile();
 
         const renderingEngineId = "viewerEngine";
         const renderingEngine = new RenderingEngine(renderingEngineId);
 
         const viewportId = "MEDICAL_IMAGE_VIEWER";
 
+        // Viewport 설정
         const viewportInput: PublicViewportInput = {
           viewportId,
           element: viewerElement.current,
-          type: Enums.ViewportType.ORTHOGRAPHIC,
+          type: Enums.ViewportType.STACK,
         };
 
+        // 렌더링 엔진에 Viewport 설정 주입
         renderingEngine.enableElement(viewportInput);
 
-        const viewport = renderingEngine.getViewport(viewportId);
+        // viewport 가져오기
+        const viewport = renderingEngine.getViewport(
+          viewportId,
+        ) as StackViewport;
+
+        viewport.setStack(["wadouri://localhost:3000/dummy.dcm"]);
+        viewport.render();
+
+        // Tool 추가하기
+        const toolGroupId = "viewerTools";
+        const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
+
+        addTool(ZoomTool); // Zoom 툴 추가
+        addTool(WindowLevelTool);
+        toolGroup?.addTool(ZoomTool.toolName);
+        toolGroup?.addTool(WindowLevelTool.toolName);
+        toolGroup?.addViewport(viewportId, renderingEngineId);
+
+        // IO 인터페이스 바인딩
+        toolGroup?.setToolActive(ZoomTool.toolName, {
+          bindings: [
+            {
+              mouseButton: csToolsEnums.MouseBindings.Wheel, // Wheel
+            },
+          ],
+        });
+        toolGroup?.setToolActive(WindowLevelTool.toolName, {
+          bindings: [
+            {
+              mouseButton: csToolsEnums.MouseBindings.Primary, // Left Click
+            },
+          ],
+        });
+
         viewport.render();
       }
     };
@@ -75,8 +99,9 @@ const DicomViewer = () => {
     <div
       ref={viewerElement}
       style={{
-        width: "512px",
-        height: "512px",
+        resize: "none",
+        width: "1024px",
+        height: "1024px",
         backgroundColor: "#000",
       }}
     ></div>
