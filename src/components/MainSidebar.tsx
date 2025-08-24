@@ -15,7 +15,7 @@ import {
 
 import { useSearchPatientByName } from "@/query/patient";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Patient } from "@/types/Patient";
+import { Patient } from "@/types/patient";
 
 interface AppSidebarProps {
   onDataRequest: (patient: Patient) => void;

@@ -1,13 +1,14 @@
-import { dataTagErrorSymbol, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import axios from "./axios";
 import { Dicom } from "@/types/DICOM";
-import { Patient } from "@/types/Patient";
+import { Patient } from "@/types/patient";
 
 interface OrthancRequest {
   name: string;
   level: string;
 }
 
+// 환자 이름으로 대상 환자 찾는 REST API 요청
 export function useSearchPatientByName(name: string) {
   return useQuery({
     queryKey: [name],
@@ -38,10 +39,8 @@ export function useSearchPatientByName(name: string) {
 export function useSearchStudiesByPatient(patiendId: string) {
   return useQuery({
     queryKey: [patiendId],
-    // queryFn: async() => {
-    //   const uri = "orthanc";
-    //   const data: GetStudiesReqBody = { patiendId }
-    //   const res =
-    // }
+    queryFn: async () => {
+      const uri = "/api/dashboard/";
+    },
   });
 }

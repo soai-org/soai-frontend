@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  Settings,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { MetadataDisplay } from "./MetadataDisplay";
 
