@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { MetadataDisplay } from "./MetadataDisplay";
@@ -42,27 +43,17 @@ export function ViewerSidebar() {
       </div>
 
       {!isCollapsed && <MetadataDisplay />}
-
       <div className="mt-auto">
-        <div
-          className={`p-2 rounded-lg hover:bg-gray-700 ${
-            isCollapsed ? "justify-center" : ""
-          }`}
+        <Button
+          variant="ghost"
+          className={`w-full text-left hover:bg-primary ${isCollapsed ? "justify-center" : "justify-start"}`}
+          asChild
         >
-          <div className="flex items-center">
-            <img
-              src="https://placeholder.co/40"
-              alt="User Avatar"
-              className="w-10 h-10 rounded-full"
-            />
-            {!isCollapsed && (
-              <div className="ml-3">
-                <p className="font-semibold">Dr. Human</p>
-                <p className="text-xs text-gray-400">Radiologist</p>
-              </div>
-            )}
-          </div>
-        </div>
+          <Link href="/">
+            <ChevronLeft className={`w-5 h-5 ${!isCollapsed ? "mr-3" : ""}`} />
+            {!isCollapsed && <span>돌아가기</span>}
+          </Link>
+        </Button>
         <Button
           variant="ghost"
           className={`w-full mt-2 text-left hover:bg-red-600/50 ${
@@ -70,7 +61,7 @@ export function ViewerSidebar() {
           }`}
         >
           <LogOut className={`w-5 h-5 ${!isCollapsed ? "mr-3" : ""}`} />
-          {!isCollapsed && "Logout"}
+          {!isCollapsed && "로그아웃"}
         </Button>
       </div>
     </aside>

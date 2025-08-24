@@ -1,9 +1,7 @@
 "use client";
 
 import { ViewerSidebar } from "@/components/ViewerSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,

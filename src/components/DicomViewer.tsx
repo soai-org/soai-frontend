@@ -27,7 +27,7 @@ async function loadDCMFile(): Promise<ArrayBuffer> {
   }
 }
 
-const InitBox = () => {
+const DicomViewer = () => {
   const viewerElement = useRef<HTMLDivElement>(null);
   const cornerstoneDICOMImageLoader = useRef<unknown>(null);
 
@@ -83,4 +83,4 @@ const InitBox = () => {
   );
 };
 
-export default InitBox;
+export default DicomViewer;
