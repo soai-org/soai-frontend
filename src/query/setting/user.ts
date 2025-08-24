@@ -15,9 +15,10 @@ export function useUserList({ page = 1, limit = 10 }: Pagination) {
     queryKey: [paths.user, page, limit],
     queryFn: async (): Promise<User[]> => {
       try {
-        const searchParams = new URLSearchParams();
-        searchParams.append("page", page.toString());
-        searchParams.append("limit", limit.toString());
+        const searchParams = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
 
         const res = await axios.get(`${paths.user}?${searchParams.toString()}`);
         return res.data;
