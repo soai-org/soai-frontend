@@ -96,15 +96,7 @@ const DicomViewer = () => {
   }, [viewerElement]);
 
   return (
-    <div
-      ref={viewerElement}
-      style={{
-        resize: "none",
-        width: "1024px",
-        height: "1024px",
-        backgroundColor: "#000",
-      }}
-    ></div>
+    <div className={`h-screen w-screen bg-black`} ref={viewerElement}></div>
   );
 };
 

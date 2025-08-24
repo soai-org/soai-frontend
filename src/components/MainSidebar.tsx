@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import {
   Sidebar,
-  SidebarContent,
   SidebarHeader,
+  SidebarContent,
   SidebarGroup,
+  SidebarInput,
+  SidebarGroupContent,
 } from "@/components/ui/sidebar";
 
 import { useSearchPatientByName } from "@/query/patient";
@@ -47,44 +48,46 @@ export function MapSidebar({ onDataRequest }: AppSidebarProps) {
 
   return (
     <Sidebar>
+      <SidebarHeader></SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <div className="mb-4">
-            <Label
-              htmlFor="patient-search"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              환자 검색
-            </Label>
-            <Input
-              id="patient-search"
-              type="text"
-              placeholder="환자 이름 검색..."
-              className="w-full"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-              }}
-            />
-          </div>
-          <div className="space-y-2 max-h-[50vh] min-h-[50vh] overflow-y-auto mb-4">
-            {isSuccessPatient ? (
-              patients.map((patient, index) => (
-                <div
-                  key={index}
-                  className={`p-2 hover:bg-gray-200 rounded-md cursor-pointer flex justify-between items-center ${selectedPatient?.name === patient.name ? "bg-gray-200" : ""}`}
-                  onClick={() => setSelectedPatient(patient)}
-                >
-                  <span>{patient.name}</span>
-                  <span className="text-sm text-gray-500">
-                    {patient.birthdate}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-gray-500">검색 결과가 없습니다.</p>
-            )}
-          </div>
+          <SidebarGroupContent>
+            <div className="mb-4">
+              <Label className={"text-lg"} htmlFor="patient-search">
+                환자 검색
+              </Label>
+              <SidebarInput
+                id="patient-search"
+                type="text"
+                placeholder="환자 이름 검색..."
+                className="w-full"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                }}
+              />
+            </div>
+          </SidebarGroupContent>
+          <SidebarGroupContent>
+            <div className="space-y-2 max-h-[50vh] min-h-[50vh] overflow-y-auto mb-4">
+              {isSuccessPatient && patients.length > 0 ? (
+                patients.map((patient, index) => (
+                  <div
+                    key={index}
+                    className={`p-2 hover:bg-gray-200 rounded-md cursor-pointer flex justify-between items-center ${selectedPatient?.name === patient.name ? "bg-gray-200" : ""}`}
+                    onClick={() => setSelectedPatient(patient)}
+                  >
+                    <span>{patient.name}</span>
+                    <span className="text-sm text-gray-500">
+                      {patient.birthdate}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">검색 결과가 없습니다.</p>
+              )}
+            </div>
+          </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
           <h3 className="text-lg font-semibold mb-2">환자 상세 정보</h3>
