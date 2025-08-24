@@ -60,7 +60,7 @@
   --accent: oklch(26.14% 0.00084 247.58);;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
-  --border: #EBEBEB;
+  --border: oklch(40% 0.00084 247.58);
   --input: #EBEBEB;
   --ring: #0049BC;
   --chart-1: #0049BC;

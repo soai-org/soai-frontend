@@ -40,11 +40,11 @@ export function SettingSidebar() {
       <SidebarHeader className="border-b p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">설정</h2>
-          <Link href="/" passHref>
-            <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/" passHref>
               <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </SidebarHeader>
       <SidebarContent>
