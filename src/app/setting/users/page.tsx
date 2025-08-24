@@ -208,18 +208,6 @@ export default function UsersManagementPage() {
     setCurrentPage(1);
   }, [searchTerm, roleFilter]);
 
-  const getStatusBadge = (status: string) => {
-    return status === "활성" ? (
-      <Badge variant="default" className="bg-green-500 text-white">
-        활성
-      </Badge>
-    ) : (
-      <Badge variant="secondary" className="bg-gray-500 text-white">
-        비활성
-      </Badge>
-    );
-  };
-
   return (
     <div className="p-8">
       <div className="mb-8">
