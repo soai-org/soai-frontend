@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -34,11 +33,11 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">이메일</Label>
+            <Label htmlFor="email">ID</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
+              id="id"
+              type="string"
+              placeholder="ID를 입력하세요."
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}

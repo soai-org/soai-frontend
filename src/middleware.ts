@@ -5,7 +5,7 @@ export default auth((req) => {
   // If the user is not authenticated, redirect to the login page.
   if (!req.auth) {
     // The original URL is automatically saved as a `callbackUrl` parameter
-    const loginUrl = new URL("/login", req.url);
+    const loginUrl = new URL("/api/auth/signin", req.url);
     return NextResponse.redirect(loginUrl);
   }
 });
