@@ -10,6 +10,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChatbotPanel } from "./ChatbotPanel";
 
 export function ViewerRightSidebar() {
   const [selectedModel, setSelectedModel] = useState("model1");
@@ -23,7 +24,7 @@ export function ViewerRightSidebar() {
   return (
     <aside
       className={`${cn(
-        "absolute top-0 right-0 w-80 h-screen bg-secondary p-4 shadow-lg text-white z-10 transition-all duration-300 ease-in-out",
+        "absolute top-0 right-0 w-80 h-screen bg-secondary p-4 shadow-lg text-white z-10 transition-all duration-300 ease-in-out flex flex-col",
         isCollapsed ? "w-20" : "w-80",
       )}`}
     >
@@ -40,9 +41,9 @@ export function ViewerRightSidebar() {
       {isCollapsed ? (
         <></>
       ) : (
-        <div className="space-y-6">
-          {/* Action Buttons */}
-          <div>
+        <div className="flex flex-col h-full space-y-4">
+          {/* 상단 AI 모델 선택 영역 */}
+          <div className="flex-shrink-0">
             <h3 className="text-lg font-semibold mb-3">AI Model Selection</h3>
             <Separator className="my-2" />
             <Select
@@ -58,6 +59,11 @@ export function ViewerRightSidebar() {
                 <SelectItem value="model3">AI Model 3</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* 하단 챗봇 패널 - 화면 높이의 50% 정도 */}
+          <div className="flex-1 max-h-[50vh] min-h-[50vh]">
+            <ChatbotPanel />
           </div>
         </div>
       )}
