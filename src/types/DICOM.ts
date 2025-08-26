@@ -1,3 +1,10 @@
+export enum Level {
+  Patient = "Patient",
+  Study = "Study",
+  Series = "Series",
+  Instance = "Instance",
+}
+
 export interface MainDicomTags {
   PatientName: string;
   PatientID: string;

@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import Credentials from "next-auth/providers/credentials";
+import axios from "@/query/axios";
 
 export const {
   handlers: { GET, POST },
@@ -8,28 +9,44 @@ export const {
   signOut,
 } = NextAuth({
   providers: [
-    CredentialsProvider({
+    Credentials({
       name: "Credentials",
       credentials: {
         email: {
-          label: "Email",
-          type: "email",
-          placeholder: "test@example.com",
+          label: "ID",
+          type: "string",
+          placeholder: "ID를 입력하세요.",
         },
-        password: { label: "Password", type: "password" },
+        password: { label: "Password", type: "password", placeholder: "*****" },
       },
       async authorize(credentials) {
-        if (
-          credentials?.email === "test@example.com" &&
-          credentials?.password === "password"
-        ) {
-          return { id: "1", name: "Test User", email: "test@example.com" };
+        try {
+          const { data } = await axios.post("/user/login", {
+            userId: credentials.email,
+            userPassword: credentials.password,
+          });
+
+          return { id: "external", accessToken: data };
+        } catch (error) {
+          console.log(error);
+          return null;
         }
-        return null;
       },
     }),
   ],
-  pages: {
-    signIn: "/login",
+  session: {
+    strategy: "jwt",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user?.accessToken) {
+        token.accessToken = user.accessToken;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.accessToken = token.accessToken;
+      return session;
+    },
   },
 });

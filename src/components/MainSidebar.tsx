@@ -14,6 +14,7 @@ import {
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
 
+import { signOut } from "next-auth/react";
 import { useSearchPatientByName } from "@/query/patient";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Patient } from "@/types/patient";
@@ -119,7 +120,7 @@ export function MapSidebar({ onDataRequest }: AppSidebarProps) {
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => alert("로그아웃")}
+            onClick={() => signOut({ redirectTo: "/api/auth/signin" })}
           >
             <LogOut className="mr-2 h-4 w-4" />
             로그아웃

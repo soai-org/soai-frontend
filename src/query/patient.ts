@@ -1,12 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "./axios";
-import { Dicom } from "@/types/DICOM";
+import { Dicom, Level } from "@/types/DICOM";
 import { Patient } from "@/types/patient";
 
 interface OrthancRequest {
   name: string;
-  level: string;
+  level: Level;
 }
+
+interface OrthancDetailRequest {
+  uuid: string;
+  level: Level;
+}
+
+const dashboardPath = "/api/dashboard";
 
 // 환자 이름으로 대상 환자 찾는 REST API 요청
 export function useSearchPatientByName(name: string) {
@@ -14,8 +21,8 @@ export function useSearchPatientByName(name: string) {
     queryKey: [name],
     queryFn: async () => {
       try {
-        const requestUrl = "/api/dashboard/toolsfindbyname";
-        const data: OrthancRequest = { name, level: "Patient" };
+        const requestUrl = dashboardPath + "/toolsfindbyname";
+        const data: OrthancRequest = { name, level: Level.Patient };
         const res = await axios.post(requestUrl, data);
 
         return res.data;
@@ -27,6 +34,7 @@ export function useSearchPatientByName(name: string) {
     enabled: !!name,
     select: (data: Dicom[]): Patient[] => {
       return data.map((dicom) => ({
+        uuid: dicom.MainDicomTags.PatientID,
         name: dicom.MainDicomTags.PatientName,
         birthdate: dicom.MainDicomTags.PatientBirthDate,
         gender: dicom.MainDicomTags.PatientSex,
@@ -36,11 +44,23 @@ export function useSearchPatientByName(name: string) {
   });
 }
 
-export function useSearchStudiesByPatient(patiendId: string) {
+export function useSearchStudiesByPatient(patientUUID: string) {
   return useQuery({
-    queryKey: [patiendId],
+    queryKey: [patientUUID],
     queryFn: async () => {
-      const uri = "/api/dashboard/";
+      const requestUrl = dashboardPath + "/findbyuuid";
+      const data: OrthancDetailRequest = {
+        uuid: patientUUID,
+        level: Level.Patient,
+      };
+
+      try {
+        const res = await axios.post(requestUrl, data);
+        return res.data;
+      } catch (error) {
+        console.log(error);
+        return [];
+      }
     },
   });
 }
