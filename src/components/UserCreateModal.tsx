@@ -25,6 +25,7 @@ interface UserCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (userData: {
+    id: string;
     name: string;
     role: string;
     password: string;
@@ -37,6 +38,7 @@ export function UserCreateModal({
   onCreate,
 }: UserCreateModalProps) {
   const [formData, setFormData] = useState({
+    id: "",
     name: "",
     role: "",
     password: "",
@@ -44,6 +46,7 @@ export function UserCreateModal({
   });
 
   const [errors, setErrors] = useState<{
+    id?: string;
     name?: string;
     role?: string;
     password?: string;
@@ -66,6 +69,10 @@ export function UserCreateModal({
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "ID를 입력해주세요.";
+    }
 
     if (!formData.name.trim()) {
       newErrors.name = "이름을 입력해주세요.";
@@ -96,6 +103,7 @@ export function UserCreateModal({
 
     if (validateForm()) {
       onCreate({
+        id: formData.id.trim(),
         name: formData.name.trim(),
         role: formData.role,
         password: formData.password,
@@ -103,6 +111,7 @@ export function UserCreateModal({
 
       // 폼 초기화
       setFormData({
+        id: "",
         name: "",
         role: "",
         password: "",
@@ -116,6 +125,7 @@ export function UserCreateModal({
   const handleClose = () => {
     // 폼 초기화
     setFormData({
+      id: "",
       name: "",
       role: "",
       password: "",
@@ -143,6 +153,23 @@ export function UserCreateModal({
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                ID
+              </Label>
+              <div className="col-span-3 space-y-1">
+                <Input
+                  id="name"
+                  value={formData.id}
+                  onChange={(e) => handleInputChange("id", e.target.value)}
+                  className={errors.name ? "border-destructive" : ""}
+                  placeholder="사용자 ID"
+                />
+                {errors.name && (
+                  <p className="text-xs text-destructive">{errors.name}</p>
+                )}
+              </div>
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
                 이름

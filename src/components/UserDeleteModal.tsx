@@ -10,16 +10,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AlertTriangle, Trash2 } from "lucide-react";
+import { User } from "@/types/user";
 
 interface UserDeleteModalProps {
-  user: {
-    id: number;
-    name: string;
-    role: string;
-  } | null;
+  user: User | null;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (userId: number) => void;
+  onConfirm: (userId: string) => void;
 }
 
 export function UserDeleteModal({
@@ -30,7 +27,7 @@ export function UserDeleteModal({
 }: UserDeleteModalProps) {
   const handleConfirm = () => {
     if (user) {
-      onConfirm(user.id);
+      onConfirm(user.userId);
       onClose();
     }
   };
@@ -59,15 +56,15 @@ export function UserDeleteModal({
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">ID:</span>
-                <span className="text-sm">{user.id}</span>
+                <span className="text-sm">{user.userId}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">이름:</span>
-                <span className="text-sm">{user.name}</span>
+                <span className="text-sm">{user.userName}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">역할:</span>
-                <span className="text-sm">{user.role}</span>
+                <span className="text-sm">{user.userRole}</span>
               </div>
             </div>
           )}

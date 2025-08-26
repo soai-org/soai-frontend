@@ -19,23 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  department: string;
-  role: string;
-  status: string;
-  lastLogin: string;
-  joinDate: string;
-}
+import { User } from "@/types/user";
 
 interface UserEditModalProps {
   user: User | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (updatedUser: User & { password?: string }) => void;
+  onSave: (updatedUser: Partial<User> & Pick<User, "userId">) => void;
   currentUserRole?: string;
 }
 
@@ -57,8 +47,8 @@ export function UserEditModal({
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name,
-        role: user.role,
+        name: user.userName,
+        role: user.userRole,
         password: "",
       });
     }
@@ -67,11 +57,11 @@ export function UserEditModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (user) {
-      const updatedUser = {
-        ...user,
-        name: formData.name,
-        role: formData.role,
-        ...(formData.password && { password: formData.password }),
+      const updatedUser: Partial<User> & Pick<User, "userId"> = {
+        userId: user.userId,
+        userName: formData.name,
+        userRole: formData.role,
+        ...(formData.password && { userPassword: formData.password }),
       };
       onSave(updatedUser);
       onClose();
@@ -120,9 +110,9 @@ export function UserEditModal({
                   <SelectValue placeholder="역할 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="의사">의사</SelectItem>
-                  <SelectItem value="간호사">간호사</SelectItem>
-                  <SelectItem value="관리자">관리자</SelectItem>
+                  <SelectItem value="doctor">의사</SelectItem>
+                  <SelectItem value="nurse">간호사</SelectItem>
+                  <SelectItem value="admin">관리자</SelectItem>
                 </SelectContent>
               </Select>
             </div>

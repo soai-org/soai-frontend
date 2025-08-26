@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -56,6 +55,13 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
+import {
+  useUserList,
+  useUserUpdate,
+  useUserDelete,
+  useUserCreate,
+} from "@/query/setting/user";
+import { User } from "@/types/user";
 
 // 임시 사용자 데이터 (실제로는 API에서 가져올 데이터)
 const mockUsers = [
@@ -117,74 +123,95 @@ export default function UsersManagementPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<
-    (typeof mockUsers)[0] | null
-  >(null);
-  const [userToDelete, setUserToDelete] = useState<
-    (typeof mockUsers)[0] | null
-  >(null);
+
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  const { data: users, refetch } = useUserList({ page, limit });
+
+  const { mutateAsync: createMutate } = useUserCreate();
+  const { mutateAsync: editMutate } = useUserUpdate();
+  const { mutateAsync: deleteMutate } = useUserDelete();
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
   // 현재 로그인한 사용자의 역할 (실제로는 인증 시스템에서 가져와야 함)
   const currentUserRole = "admin"; // 임시로 admin으로 설정
 
-  const handleEditUser = (userId: number) => {
-    const user = mockUsers.find((u) => u.id === userId);
-    if (user) {
-      setSelectedUser(user);
-      setIsEditModalOpen(true);
+  const handleEditUser = (userId: string) => {
+    if (users) {
+      const user = users.find((u) => u.userId === userId);
+      if (user) {
+        setSelectedUser(user);
+        setIsEditModalOpen(true);
+      }
     }
   };
 
-  const handleDeleteUser = (userId: number, userName: string) => {
-    const user = mockUsers.find((u) => u.id === userId);
-    if (user) {
-      setUserToDelete(user);
-      setIsDeleteModalOpen(true);
+  const handleDeleteUser = (userId: string) => {
+    if (users) {
+      const user = users.find((u) => u.userId === userId);
+      if (user) {
+        setUserToDelete(user);
+        setIsDeleteModalOpen(true);
+      }
     }
   };
 
-  const handleConfirmDelete = (userId: number) => {
-    console.log("삭제할 사용자 ID:", userId);
-    // TODO: 사용자 삭제 API 호출
-    const user = mockUsers.find((u) => u.id === userId);
-    if (user) {
-      alert(`사용자 "${user.name}"이 삭제되었습니다.`);
+  const handleConfirmDelete = async (userId: string) => {
+    if (users) {
+      const user = users.find((u) => u.userId === userId);
+      try {
+        if (user) {
+          await deleteMutate(user.userId);
+          await refetch();
+          alert(`사용자 "${user.userId}"이 삭제되었습니다.`);
+        }
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
-  const handleCreateUser = (userData: {
+  const handleCreateUser = async (userData: {
+    id: string;
     name: string;
     role: string;
     password: string;
   }) => {
     console.log("새 사용자 생성:", userData);
-    // TODO: 사용자 생성 API 호출
-    const newUser = {
-      id: Math.max(...mockUsers.map((u) => u.id)) + 1,
-      name: userData.name,
-      email: `${userData.name.toLowerCase()}@hospital.com`,
-      department: "미지정",
-      role: userData.role,
-      status: "활성",
-      lastLogin: "로그인 기록 없음",
-      joinDate: new Date().toISOString().split("T")[0],
-    };
-
-    // 실제로는 API 호출 후 성공 시에만 추가
-    alert(`사용자 "${userData.name}"이 생성되었습니다.`);
+    try {
+      // 실제로는 API 호출 후 성공 시에만 추가
+      await createMutate({
+        userId: userData.id,
+        userName: userData.name,
+        userRole: userData.role,
+        userPassword: userData.password,
+      });
+      await refetch();
+      alert(`사용자 "${userData.name}"이 생성되었습니다.`);
+    } catch (error) {
+      console.log(`사용자 생성 에러: ${error}`);
+    }
   };
 
-  const handleSaveUser = (
-    updatedUser: (typeof mockUsers)[0] & { password?: string },
+  const handleUpdateUser = async (
+    updatedUser: Partial<User> & Pick<User, "userId">,
   ) => {
     console.log("수정된 사용자 정보:", updatedUser);
-    // TODO: 사용자 수정 API 호출
-    if (updatedUser.password) {
-      console.log("비밀번호도 함께 변경됨");
+    try {
+      if (updatedUser.userPassword) {
+        console.log("비밀번호도 함께 변경됨");
+      }
+      await editMutate(updatedUser);
+      await refetch();
+      alert(`사용자 "${updatedUser.userName}"의 정보가 수정되었습니다.`);
+    } catch (error) {
+      console.log(`정보 수정 에러: ${error}`);
     }
-    alert(`사용자 "${updatedUser.name}"의 정보가 수정되었습니다.`);
   };
 
   // 필터링된 사용자 목록
@@ -201,7 +228,6 @@ export default function UsersManagementPage() {
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   // 검색이나 필터 변경 시 첫 페이지로 이동
   useEffect(() => {
@@ -339,40 +365,46 @@ export default function UsersManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.id}</TableCell>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">작업 메뉴 열기</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleEditUser(user.id)}
-                          className="cursor-pointer"
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          수정
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteUser(user.id, user.name)}
-                          className="cursor-pointer text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          삭제
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {users ? (
+                users.map((user) => (
+                  <TableRow key={user.userId}>
+                    <TableCell className="font-medium">{user.userId}</TableCell>
+                    <TableCell className="font-medium">
+                      {user.userName}
+                    </TableCell>
+                    <TableCell>{user.userRole}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">작업 메뉴 열기</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleEditUser(user.userId)}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            수정
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteUser(user.userId)}
+                            className="cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            삭제
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow></TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -487,7 +519,7 @@ export default function UsersManagementPage() {
           setIsEditModalOpen(false);
           setSelectedUser(null);
         }}
-        onSave={handleSaveUser}
+        onSave={handleUpdateUser}
         currentUserRole={currentUserRole}
       />
 
