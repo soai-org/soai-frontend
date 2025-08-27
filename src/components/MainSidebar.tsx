@@ -120,7 +120,7 @@ export function MapSidebar({ onDataRequest }: AppSidebarProps) {
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => signOut({ redirectTo: "/api/auth/signin" })}
+            onClick={() => signOut({ redirectTo: "/signin" })}
           >
             <LogOut className="mr-2 h-4 w-4" />
             로그아웃

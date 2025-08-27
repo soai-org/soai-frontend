@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { MetadataDisplay } from "./MetadataDisplay";
+import { signOut } from "next-auth/react";
 
 interface NavItem {
   href: string;
@@ -59,6 +60,7 @@ export function ViewerLeftSidebar() {
           className={`w-full mt-2 text-left hover:bg-red-600/50 ${
             isCollapsed ? "justify-center" : "justify-start"
           }`}
+          onClick={() => signOut({ redirectTo: "/signin" })}
         >
           <LogOut className={`w-5 h-5 ${!isCollapsed ? "mr-3" : ""}`} />
           {!isCollapsed && "로그아웃"}

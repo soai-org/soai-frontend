@@ -34,6 +34,9 @@ export const {
       },
     }),
   ],
+  pages: {
+    signIn: "/signin",
+  },
   session: {
     strategy: "jwt",
   },

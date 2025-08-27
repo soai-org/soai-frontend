@@ -2,10 +2,11 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 export default auth((req) => {
+  console.log(req.auth);
   // If the user is not authenticated, redirect to the login page.
   if (!req.auth) {
     // The original URL is automatically saved as a `callbackUrl` parameter
-    const loginUrl = new URL("/api/auth/signin", req.url);
+    const loginUrl = new URL("/signin", req.url);
     return NextResponse.redirect(loginUrl);
   }
 });
