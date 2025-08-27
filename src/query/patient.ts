@@ -21,7 +21,7 @@ export function useSearchPatientByName(name: string) {
     queryKey: [name],
     queryFn: async () => {
       try {
-        const requestUrl = dashboardPath + "/toolsfindbyname";
+        const requestUrl = dashboardPath + "/toolsfind";
         const data: OrthancRequest = { name, level: Level.Patient };
         const res = await axios.post(requestUrl, data);
 
