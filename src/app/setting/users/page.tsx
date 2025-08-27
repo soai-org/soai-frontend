@@ -47,7 +47,6 @@ import { UserDeleteModal } from "@/components/UserDeleteModal";
 import { UserCreateModal } from "@/components/UserCreateModal";
 import {
   Search,
-  Filter,
   MoreHorizontal,
   UserPlus,
   Download,
@@ -141,6 +140,11 @@ export default function UsersManagementPage() {
   // 현재 로그인한 사용자의 역할 (실제로는 인증 시스템에서 가져와야 함)
   const currentUserRole = "admin"; // 임시로 admin으로 설정
 
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(1 || (users && users.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
   const handleEditUser = (userId: string) => {
     if (users) {
       const user = users.find((u) => u.userId === userId);
@@ -213,21 +217,6 @@ export default function UsersManagementPage() {
       console.log(`정보 수정 에러: ${error}`);
     }
   };
-
-  // 필터링된 사용자 목록
-  const filteredUsers = mockUsers.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.id.toString().includes(searchTerm);
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-
-    return matchesSearch && matchesRole;
-  });
-
-  // 페이지네이션 계산
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
 
   // 검색이나 필터 변경 시 첫 페이지로 이동
   useEffect(() => {
@@ -339,7 +328,7 @@ export default function UsersManagementPage() {
             <div>
               <CardTitle>사용자 목록</CardTitle>
               <CardDescription>
-                총 {filteredUsers.length}명의 사용자가 있습니다
+                총 {users && users.length}명의 사용자가 있습니다
               </CardDescription>
             </div>
             <div className="flex space-x-2">
@@ -417,8 +406,8 @@ export default function UsersManagementPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="text-sm text-muted-foreground">
-                  총 {filteredUsers.length}명 중 {startIndex + 1}-
-                  {Math.min(endIndex, filteredUsers.length)}명 표시
+                  총 {users && users.length}명 중 {startIndex + 1}-
+                  {Math.min(endIndex, 1 || (users && users.length))}명 표시
                 </div>
                 <div className="flex items-center gap-2">
                   <Label htmlFor="itemsPerPage" className="text-sm">

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "@/query/axios";
 import { User } from "@/types/user";
 import { Pagination } from "@/types/pagination";
