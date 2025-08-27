@@ -18,6 +18,8 @@ import { signOut } from "next-auth/react";
 import { useSearchPatientByName } from "@/query/patient";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Patient } from "@/types/patient";
+import Loading from "./Loading";
+import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
   onDataRequest: (patient: Patient) => void;
@@ -28,6 +30,7 @@ export function MapSidebar({ onDataRequest }: AppSidebarProps) {
   const debouncedSearchTerm = useDebounce(searchTerm, 1500);
   const {
     data: patients,
+    isLoading: isLoadingPatient,
     isSuccess: isSuccessPatient,
     refetch: refetchPatient,
   } = useSearchPatientByName(debouncedSearchTerm);
@@ -40,12 +43,10 @@ export function MapSidebar({ onDataRequest }: AppSidebarProps) {
   };
 
   useEffect(() => {
-    refetchPatient();
+    if (debouncedSearchTerm) {
+      refetchPatient();
+    }
   }, [refetchPatient, debouncedSearchTerm]);
-
-  useEffect(() => {
-    console.log(debouncedSearchTerm);
-  }, [debouncedSearchTerm]);
 
   return (
     <Sidebar>
@@ -71,20 +72,35 @@ export function MapSidebar({ onDataRequest }: AppSidebarProps) {
           </SidebarGroupContent>
           <SidebarGroupContent>
             <div className="space-y-2 max-h-[50vh] min-h-[50vh] overflow-y-auto mb-4">
-              {isSuccessPatient && patients.length > 0 ? (
+              {isSuccessPatient &&
+                patients.length > 0 &&
                 patients.map((patient, index) => (
                   <div
                     key={index}
-                    className={`p-2 hover:bg-gray-200 rounded-md cursor-pointer flex justify-between items-center ${selectedPatient?.name === patient.name ? "bg-gray-200" : ""}`}
+                    className={cn(
+                      "p-2 hover:bg-gray-400 rounded-md cursor-pointer flex justify-between items-center",
+                      selectedPatient?.uuid === patient.uuid
+                        ? "bg-gray-400"
+                        : "",
+                    )}
                     onClick={() => setSelectedPatient(patient)}
                   >
                     <span>{patient.name}</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-200">
                       {patient.birthdate}
                     </span>
                   </div>
-                ))
-              ) : (
+                ))}
+              {isLoadingPatient && (
+                <div
+                  className={
+                    "flex flex-col items-center justify-center w-full h-full"
+                  }
+                >
+                  <Loading />
+                </div>
+              )}
+              {isSuccessPatient && patients.length === 0 && (
                 <p className="text-sm text-gray-500">검색 결과가 없습니다.</p>
               )}
             </div>
