@@ -19,7 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User } from "@/types/user";
+import {
+  User,
+  UpdateUserInput,
+  UserRole,
+  updateUserSchema,
+} from "@/types/user";
 
 interface UserEditModalProps {
   user: User | null;
@@ -36,11 +41,16 @@ export function UserEditModal({
   onSave,
   currentUserRole = "user",
 }: UserEditModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UpdateUserInput>({
     name: "",
-    role: "",
+    role: UserRole.Nurse,
     password: "",
+    confirmPassword: "",
   });
+
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof UpdateUserInput, string>>
+  >({});
 
   const isAdmin = currentUserRole === "admin";
 
@@ -50,21 +60,38 @@ export function UserEditModal({
         name: user.userName,
         role: user.userRole,
         password: "",
+        confirmPassword: "",
       });
     }
   }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const result = updateUserSchema.safeParse(formData);
+
     if (user) {
-      const updatedUser: Partial<User> & Pick<User, "userId"> = {
-        userId: user.userId,
-        userName: formData.name,
-        userRole: formData.role,
-        ...(formData.password && { userPassword: formData.password }),
-      };
-      onSave(updatedUser);
-      onClose();
+      if (!result.success) {
+        const fieldErrors: Partial<Record<keyof UpdateUserInput, string>> = {};
+        result.error?.issues.forEach((issue) => {
+          const field = issue.path[0] as keyof UpdateUserInput;
+          fieldErrors[field] = issue.message;
+        });
+        console.log(errors);
+        setErrors(fieldErrors);
+      } else {
+        try {
+          const updatedUser: Partial<User> & Pick<User, "userId"> = {
+            userId: user.userId,
+            userName: formData.name,
+            userRole: formData.role,
+            ...(formData.password && { userPassword: formData.password }),
+          };
+          onSave(updatedUser);
+          onClose();
+        } catch (_) {
+          alert("유저 업데이트에 실패했습니다. ");
+        }
+      }
     }
   };
 
@@ -73,6 +100,14 @@ export function UserEditModal({
       ...prev,
       [field]: value,
     }));
+
+    // 에러 메시지 초기화
+    if (errors[field as keyof typeof errors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
   };
 
   return (
@@ -97,6 +132,9 @@ export function UserEditModal({
                 className="col-span-3"
                 required
               />
+              {errors.name && (
+                <p className={"text-xs text-destructive"}>{errors.name}</p>
+              )}
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">
@@ -115,23 +153,55 @@ export function UserEditModal({
                   <SelectItem value="admin">관리자</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.role && (
+                <p className={"text-xs text-destructive"}>{errors.role}</p>
+              )}
             </div>
             {isAdmin && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password" className="text-right">
-                  새 비밀번호
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    handleInputChange("password", e.target.value)
-                  }
-                  className="col-span-3"
-                  placeholder="변경하려면 입력하세요"
-                />
-              </div>
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="password" className="text-right">
+                    새 비밀번호
+                  </Label>
+                  <div className="col-span-3 space-y-1">
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
+                      placeholder="변경하려면 입력하세요"
+                    />
+                    {errors.password && (
+                      <p className={"text-xs text-destructive"}>
+                        {errors.password}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="confirmPassword" className="text-right">
+                    비밀번호 확인
+                  </Label>
+                  <div className="col-span-3 space-y-1">
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={(e) =>
+                        handleInputChange("confirmPassword", e.target.value)
+                      }
+                      placeholder="변경하려면 입력하세요"
+                    />
+                    {errors.confirmPassword && (
+                      <p className={"text-xs text-destructive"}>
+                        {errors.confirmPassword}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </>
             )}
           </div>
           <DialogFooter>

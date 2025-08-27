@@ -44,8 +44,7 @@ export function useUserCreate() {
           return false;
         }
       } catch (error) {
-        console.log(error);
-        return false;
+        throw error;
       }
     },
   });
@@ -62,8 +61,7 @@ export function useUserDelete() {
           return false;
         }
       } catch (error) {
-        console.log(error);
-        return false;
+        throw error;
       }
     },
   });
@@ -80,8 +78,7 @@ export function useUserUpdate() {
           return false;
         }
       } catch (error) {
-        console.log(error);
-        return false;
+        throw error;
       }
     },
   });

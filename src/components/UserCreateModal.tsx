@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserPlus } from "lucide-react";
+import { CreateUserInput, createUserSchema, UserRole } from "@/types/user";
 
 interface UserCreateModalProps {
   isOpen: boolean;
@@ -27,9 +28,9 @@ interface UserCreateModalProps {
   onCreate: (userData: {
     id: string;
     name: string;
-    role: string;
+    role: UserRole;
     password: string;
-  }) => void;
+  }) => Promise<void>;
 }
 
 export function UserCreateModal({
@@ -37,21 +38,17 @@ export function UserCreateModal({
   onClose,
   onCreate,
 }: UserCreateModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateUserInput>({
     id: "",
     name: "",
-    role: "",
+    role: UserRole.Doctor,
     password: "",
     confirmPassword: "",
   });
 
-  const [errors, setErrors] = useState<{
-    id?: string;
-    name?: string;
-    role?: string;
-    password?: string;
-    confirmPassword?: string;
-  }>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof CreateUserInput, string>>
+  >({});
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -67,58 +64,42 @@ export function UserCreateModal({
     }
   };
 
-  const validateForm = () => {
-    const newErrors: typeof errors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "ID를 입력해주세요.";
-    }
-
-    if (!formData.name.trim()) {
-      newErrors.name = "이름을 입력해주세요.";
-    }
-
-    if (!formData.role) {
-      newErrors.role = "역할을 선택해주세요.";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "비밀번호를 입력해주세요.";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "비밀번호는 최소 6자 이상이어야 합니다.";
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "비밀번호 확인을 입력해주세요.";
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (validateForm()) {
-      onCreate({
-        id: formData.id.trim(),
-        name: formData.name.trim(),
-        role: formData.role,
-        password: formData.password,
-      });
+    const result = createUserSchema.safeParse(formData);
 
-      // 폼 초기화
-      setFormData({
-        id: "",
-        name: "",
-        role: "",
-        password: "",
-        confirmPassword: "",
+    if (!result.success) {
+      const fieldErrors: Partial<Record<keyof CreateUserInput, string>> = {};
+      result.error?.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof CreateUserInput;
+        fieldErrors[field] = issue.message;
       });
-      setErrors({});
-      onClose();
+      console.log(errors);
+      setErrors(fieldErrors);
+    } else {
+      // 유저 생성 요청
+      try {
+        await onCreate({
+          id: formData.id.trim(),
+          name: formData.name.trim(),
+          role: formData.role,
+          password: formData.password,
+        });
+
+        // 폼 초기화
+        setFormData({
+          id: "",
+          name: "",
+          role: UserRole.Doctor,
+          password: "",
+          confirmPassword: "",
+        });
+        setErrors({});
+        onClose();
+      } catch (_) {
+        alert("유저 생성에 실패했습니다.");
+      }
     }
   };
 
@@ -127,7 +108,7 @@ export function UserCreateModal({
     setFormData({
       id: "",
       name: "",
-      role: "",
+      role: UserRole.Doctor,
       password: "",
       confirmPassword: "",
     });
@@ -154,19 +135,19 @@ export function UserCreateModal({
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+              <Label htmlFor="id" className="text-right">
                 ID
               </Label>
               <div className="col-span-3 space-y-1">
                 <Input
-                  id="name"
+                  id="id"
                   value={formData.id}
                   onChange={(e) => handleInputChange("id", e.target.value)}
-                  className={errors.name ? "border-destructive" : ""}
+                  className={errors.id ? "border-destructive" : ""}
                   placeholder="사용자 ID"
                 />
-                {errors.name && (
-                  <p className="text-xs text-destructive">{errors.name}</p>
+                {errors.id && (
+                  <p className="text-xs text-destructive">{errors.id}</p>
                 )}
               </div>
             </div>
@@ -202,9 +183,9 @@ export function UserCreateModal({
                     <SelectValue placeholder="역할 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="의사">의사</SelectItem>
-                    <SelectItem value="간호사">간호사</SelectItem>
-                    <SelectItem value="관리자">관리자</SelectItem>
+                    <SelectItem value={UserRole.Doctor}>의사</SelectItem>
+                    <SelectItem value={UserRole.Nurse}>간호사</SelectItem>
+                    <SelectItem value={UserRole.Admin}>관리자</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.role && (

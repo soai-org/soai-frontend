@@ -60,7 +60,7 @@ import {
   useUserDelete,
   useUserCreate,
 } from "@/query/setting/user";
-import { User } from "@/types/user";
+import { User, UserRole } from "@/types/user";
 
 // 임시 사용자 데이터 (실제로는 API에서 가져올 데이터)
 const mockUsers = [
@@ -183,12 +183,11 @@ export default function UsersManagementPage() {
   const handleCreateUser = async (userData: {
     id: string;
     name: string;
-    role: string;
+    role: UserRole;
     password: string;
   }) => {
     console.log("새 사용자 생성:", userData);
     try {
-      // 실제로는 API 호출 후 성공 시에만 추가
       await createMutate({
         userId: userData.id,
         userName: userData.name,
@@ -198,7 +197,7 @@ export default function UsersManagementPage() {
       await refetch();
       alert(`사용자 "${userData.name}"이 생성되었습니다.`);
     } catch (error) {
-      console.log(`사용자 생성 에러: ${error}`);
+      throw error;
     }
   };
 
@@ -214,7 +213,7 @@ export default function UsersManagementPage() {
       await refetch();
       alert(`사용자 "${updatedUser.userName}"의 정보가 수정되었습니다.`);
     } catch (error) {
-      console.log(`정보 수정 에러: ${error}`);
+      throw error;
     }
   };
 
