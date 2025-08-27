@@ -15,6 +15,7 @@ import {
   ZoomTool,
   addTool,
   Enums as csToolsEnums,
+  PanTool,
 } from "@cornerstonejs/tools";
 
 import { PublicViewportInput } from "@cornerstonejs/core/types";
@@ -59,17 +60,19 @@ const DicomViewer = () => {
           viewportId,
         ) as StackViewport;
 
-        viewport.setStack(["wadouri://localhost:3000/dummy.dcm"]);
+        viewport.setStack(["wadouri://localhost:4000/dummy.dcm"]);
         viewport.render();
 
         // Tool 추가하기
         const toolGroupId = "viewerTools";
         const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
 
-        addTool(ZoomTool); // Zoom 툴 추가
+        addTool(ZoomTool);
         addTool(WindowLevelTool);
+        addTool(PanTool);
         toolGroup?.addTool(ZoomTool.toolName);
         toolGroup?.addTool(WindowLevelTool.toolName);
+        toolGroup?.addTool(PanTool.toolName);
         toolGroup?.addViewport(viewportId, renderingEngineId);
 
         // IO 인터페이스 바인딩
@@ -87,8 +90,23 @@ const DicomViewer = () => {
             },
           ],
         });
+        toolGroup?.setToolActive(PanTool.toolName, {
+          bindings: [
+            {
+              mouseButton: csToolsEnums.MouseBindings.Auxiliary,
+            },
+          ],
+        });
 
         viewport.render();
+
+        function onResize() {
+          viewport.resize();
+          viewport.resetCamera();
+          viewport.render();
+        }
+
+        window.addEventListener("resize", onResize);
       }
     };
 
