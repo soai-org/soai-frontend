@@ -232,7 +232,7 @@ export default function UsersManagementPage() {
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -280,7 +280,7 @@ export default function UsersManagementPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* 검색 및 필터 */}
       <Card className="mb-6">
