@@ -1,8 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "./axios";
 import { Dicom, Level } from "@/types/DICOM";
-import { Patient, StudyCard } from "@/types/patient";
+import { InstanceCard, Patient, SeriesCard, StudyCard } from "@/types/patient";
 import { Pagination } from "@/types/pagination";
+import { getSession } from "next-auth/react";
 
 interface OrthancRequest {
   name: string;
@@ -18,13 +19,21 @@ const dashboardPath = "/api/dashboard";
 
 // 환자 이름으로 대상 환자 찾는 REST API 요청
 export function useSearchPatientByName(name: string) {
+  const requestUrl = dashboardPath + "/toolsfind";
+
   return useQuery({
-    queryKey: [name],
+    queryKey: [requestUrl, name],
     queryFn: async () => {
+      const session = await getSession();
+      if (!session?.accessToken) return [];
+
       try {
-        const requestUrl = dashboardPath + "/toolsfind";
         const data: OrthancRequest = { name, level: Level.Patient };
-        const res = await axios.post(requestUrl, data);
+        const res = await axios.post(requestUrl, data, {
+          headers: {
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+        });
 
         return res.data;
       } catch (error) {
@@ -82,8 +91,65 @@ export function useStudiesByPatientUUID() {
         size,
       };
 
+      const session = await getSession();
+      if (!session?.accessToken) return [];
+
       try {
         const res = await axios.post<StudyCard[]>(requestUrl, data);
+        return res.data;
+      } catch (error) {
+        console.log(error);
+        return [];
+      }
+    },
+  });
+}
+
+export function useSeriesByStudyUUID() {
+  const requestUrl = dashboardPath + "/seriescards";
+
+  return useMutation({
+    mutationFn: async ({
+      studyUuid,
+      page = 1,
+      size = 10,
+    }: { studyUuid: string } & Pagination) => {
+      const data: { studyUuid: string; level: Level } & Pagination = {
+        studyUuid,
+        level: Level.Series,
+        page,
+        size,
+      };
+
+      const session = await getSession();
+      if (!session?.accessToken) return [];
+
+      try {
+        const res = await axios.post<SeriesCard[]>(requestUrl, data);
+        return res.data;
+      } catch (error) {
+        console.log(error);
+        return [];
+      }
+    },
+  });
+}
+
+export function useInstancesBySeriesUUID() {
+  const requestUrl = dashboardPath + "/instances";
+
+  return useMutation({
+    mutationFn: async ({ seriesUuid }: { seriesUuid: string }) => {
+      const data = {
+        seriesUuid,
+        level: Level.Instance,
+      };
+
+      const session = await getSession();
+      if (!session?.accessToken) return [];
+
+      try {
+        const res = await axios.post<InstanceCard[]>(requestUrl, data);
         return res.data;
       } catch (error) {
         console.log(error);
