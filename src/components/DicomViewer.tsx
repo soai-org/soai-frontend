@@ -19,10 +19,19 @@ import {
 } from "@cornerstonejs/tools";
 
 import { PublicViewportInput } from "@cornerstonejs/core/types";
+import { useInstancesBySeriesUUID } from "@/query/patient";
+import { InstanceCard } from "@/types/patient";
+import { IToolGroup } from "@cornerstonejs/tools/types";
 
-const DicomViewer = () => {
+interface DicomViewerProps {
+  seriesId: string | null;
+  setToolGroup: (toolGroup: IToolGroup) => void;
+}
+
+const DicomViewer = ({ seriesId, setToolGroup }: DicomViewerProps) => {
   const viewerElement = useRef<HTMLDivElement>(null);
   const cornerstoneDICOMImageLoader = useRef<unknown>(null);
+  const { mutate: getInstances } = useInstancesBySeriesUUID();
 
   useEffect(() => {
     const setup = async () => {
@@ -60,12 +69,33 @@ const DicomViewer = () => {
           viewportId,
         ) as StackViewport;
 
-        viewport.setStack(["wadouri://localhost:4000/dummy.dcm"]);
-        viewport.render();
+        if (seriesId) {
+          getInstances(
+            { seriesUuid: seriesId },
+            {
+              onSuccess: (data: InstanceCard[]) => {
+                if (data && data.length > 0) {
+                  const imageIds = data.map(
+                    (instance) =>
+                      `wadouri:http://localhost:8042/instances/${instance.instanceUuid}/file`,
+                  );
+                  viewport.setStack(imageIds);
+                  viewport.render();
+                }
+              },
+            },
+          );
+        } else {
+          viewport.setStack(["wadouri://localhost:4000/dummy.dcm"]);
+          viewport.render();
+        }
 
         // Tool 추가하기
         const toolGroupId = "viewerTools";
         const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
+        if (toolGroup) {
+          setToolGroup(toolGroup);
+        }
 
         addTool(ZoomTool);
         addTool(WindowLevelTool);
@@ -111,7 +141,7 @@ const DicomViewer = () => {
     };
 
     setup();
-  }, [viewerElement]);
+  }, [viewerElement, seriesId, getInstances]);
 
   return (
     <div className={`h-screen w-screen bg-black`} ref={viewerElement}></div>

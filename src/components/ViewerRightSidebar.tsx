@@ -12,14 +12,17 @@ import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ChatbotPanel } from "./ChatbotPanel";
 
-export function ViewerRightSidebar() {
-  const [selectedModel, setSelectedModel] = useState("model1");
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [active, setActive] = useState("Dashboard");
+interface ViewerRightSidebarProps {
+  isCollapsed: boolean;
+  toggleSidebar: () => void;
+}
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+export function ViewerRightSidebar({
+  isCollapsed,
+  toggleSidebar,
+}: ViewerRightSidebarProps) {
+  const [selectedModel, setSelectedModel] = useState("model1");
+  const [active, setActive] = useState("Dashboard");
 
   return (
     <aside

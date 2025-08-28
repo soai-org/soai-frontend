@@ -1,25 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { MetadataDisplay } from "./MetadataDisplay";
 import { signOut } from "next-auth/react";
+import { useSeriesByStudyUUID } from "@/query/patient";
+import { SeriesCard } from "@/types/patient";
+import { SeriesThumbnail } from "./viewer/SeriesThumbnail";
 
-interface NavItem {
-  href: string;
-  icon: React.ElementType;
-  label: string;
+interface ViewerLeftSidebarProps {
+  isCollapsed: boolean;
+  toggleSidebar: () => void;
+  currentSeriesId: string | null;
+  onSeriesSelect: (seriesId: string) => void;
 }
 
-export function ViewerLeftSidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [active, setActive] = useState("Dashboard");
+export function ViewerLeftSidebar({
+  isCollapsed,
+  toggleSidebar,
+  currentSeriesId,
+  onSeriesSelect,
+}: ViewerLeftSidebarProps) {
+  const searchParams = useSearchParams();
+  const studyId = searchParams.get("studyUID");
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const [seriesList, setSeriesList] = useState<SeriesCard[]>([]);
+  const { mutate: getSeries, isPending } = useSeriesByStudyUUID();
+
+  useEffect(() => {
+    if (studyId) {
+      getSeries(
+        { studyUuid: studyId, page: 1, size: 10 },
+        {
+          onSuccess: (data) => {
+            if (data) {
+              setSeriesList(data);
+              if (data.length > 0) {
+                onSeriesSelect(data[0].seriesUuid);
+              }
+            }
+          },
+        },
+      );
+    }
+  }, [studyId, getSeries, onSeriesSelect]);
 
   return (
     <aside
@@ -43,11 +70,32 @@ export function ViewerLeftSidebar() {
         </Button>
       </div>
 
-      {!isCollapsed && <MetadataDisplay />}
+      {!isCollapsed && (
+        <>
+          <MetadataDisplay />
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">Series</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {isPending && <p>Loading...</p>}
+              {seriesList.map((series) => (
+                <SeriesThumbnail
+                  key={series.seriesUuid}
+                  series={series}
+                  isSelected={currentSeriesId === series.seriesUuid}
+                  onSelect={onSeriesSelect}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
       <div className="mt-auto">
         <Button
           variant="ghost"
-          className={`w-full text-left hover:bg-primary ${isCollapsed ? "justify-center" : "justify-start"}`}
+          className={`w-full text-left hover:bg-primary ${
+            isCollapsed ? "justify-center" : "justify-start"
+          }`}
           asChild
         >
           <Link href="/">
