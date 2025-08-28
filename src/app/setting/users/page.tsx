@@ -50,7 +50,6 @@ import {
   MoreHorizontal,
   UserPlus,
   Download,
-  Users,
   Edit,
   Trash2,
 } from "lucide-react";
@@ -63,59 +62,6 @@ import {
 import { User, UserRole } from "@/types/user";
 
 // 임시 사용자 데이터 (실제로는 API에서 가져올 데이터)
-const mockUsers = [
-  {
-    id: 1,
-    name: "김의사",
-    email: "doctor.kim@hospital.com",
-    department: "내과",
-    role: "의사",
-    status: "활성",
-    lastLogin: "2024-01-15 14:30",
-    joinDate: "2023-03-15",
-  },
-  {
-    id: 2,
-    name: "이간호사",
-    email: "nurse.lee@hospital.com",
-    department: "외과",
-    role: "간호사",
-    status: "활성",
-    lastLogin: "2024-01-15 13:45",
-    joinDate: "2023-05-20",
-  },
-  {
-    id: 3,
-    name: "박원무",
-    email: "admin.park@hospital.com",
-    department: "원무과",
-    role: "관리자",
-    status: "활성",
-    lastLogin: "2024-01-15 12:15",
-    joinDate: "2023-01-10",
-  },
-  {
-    id: 4,
-    name: "최의사",
-    email: "doctor.choi@hospital.com",
-    department: "소아과",
-    role: "의사",
-    status: "비활성",
-    lastLogin: "2024-01-10 09:20",
-    joinDate: "2023-07-01",
-  },
-  {
-    id: 5,
-    name: "정간호사",
-    email: "nurse.jung@hospital.com",
-    department: "응급실",
-    role: "간호사",
-    status: "활성",
-    lastLogin: "2024-01-15 15:00",
-    joinDate: "2023-09-15",
-  },
-];
-
 export default function UsersManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -123,10 +69,10 @@ export default function UsersManagementPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const [page, setPage] = useState(1);
+  const [offset, setOffset] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  const { data: users, refetch } = useUserList({ page, limit });
+  const { data: users, refetch } = useUserList({ offset, limit });
 
   const { mutateAsync: createMutate } = useUserCreate();
   const { mutateAsync: editMutate } = useUserUpdate();

@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "./axios";
 import { Dicom, Level } from "@/types/DICOM";
-import { Patient } from "@/types/patient";
+import { Patient, StudyCard } from "@/types/patient";
+import { Pagination } from "@/types/pagination";
 
 interface OrthancRequest {
   name: string;
@@ -9,7 +10,7 @@ interface OrthancRequest {
 }
 
 interface OrthancDetailRequest {
-  uuid: string;
+  patientUuid: string;
   level: Level;
 }
 
@@ -44,18 +45,45 @@ export function useSearchPatientByName(name: string) {
   });
 }
 
-export function useSearchStudiesByPatient(patientUUID: string) {
-  return useQuery({
-    queryKey: [patientUUID],
-    queryFn: async () => {
-      const requestUrl = dashboardPath + "/findbyuuid";
-      const data: OrthancDetailRequest = {
-        uuid: patientUUID,
-        level: Level.Patient,
+// export function useSearchStudiesByPatient(patientUUID: string) {
+//   return useQuery({
+//     queryKey: [patientUUID],
+//     queryFn: async () => {
+//       const requestUrl = dashboardPath + "/findbyuuid";
+//       const data: OrthancDetailRequest = {
+//         uuid: patientUUID,
+//         level: Level.Patient,
+//       };
+
+//       try {
+//         const res = await axios.post(requestUrl, data);
+//         return res.data;
+//       } catch (error) {
+//         console.log(error);
+//         return [];
+//       }
+//     },
+//   });
+// }
+
+export function useStudiesByPatientUUID() {
+  const requestUrl = dashboardPath + "/studycards";
+
+  return useMutation({
+    mutationFn: async ({
+      patientUuid,
+      page = 1,
+      size = 10,
+    }: { patientUuid: string } & Pagination) => {
+      const data: OrthancDetailRequest & Pagination = {
+        patientUuid,
+        level: Level.Study,
+        page,
+        size,
       };
 
       try {
-        const res = await axios.post(requestUrl, data);
+        const res = await axios.post<StudyCard[]>(requestUrl, data);
         return res.data;
       } catch (error) {
         console.log(error);

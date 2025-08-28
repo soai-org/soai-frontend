@@ -1,7 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "@/query/axios";
 import { User } from "@/types/user";
-import { Pagination } from "@/types/pagination";
+
+interface Pagination {
+  offset: number;
+  limit: number;
+}
 
 const paths = {
   user: "/users",
@@ -12,9 +16,9 @@ const paths = {
 };
 
 // Setting User 목록 호출 hook
-export function useUserList({ page = 1, limit = 10 }: Pagination) {
+export function useUserList({ offset = 0, limit = 10 }: Pagination) {
   return useQuery({
-    queryKey: [paths.user, page, limit],
+    queryKey: [paths.user, offset, limit],
     queryFn: async (): Promise<User[]> => {
       try {
         // 추후 페이지네이션 기능 추가하면 추가

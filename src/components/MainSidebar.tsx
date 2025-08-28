@@ -25,7 +25,7 @@ interface AppSidebarProps {
   onDataRequest: (patient: Patient) => void;
 }
 
-export function MapSidebar({ onDataRequest }: AppSidebarProps) {
+export function MainSidebar({ onDataRequest }: AppSidebarProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 1500);
   const {
