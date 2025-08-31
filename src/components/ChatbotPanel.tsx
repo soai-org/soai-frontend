@@ -5,11 +5,13 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Send, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useChatbotAsk } from "@/query/ai/chatbot";
 
 interface Message {
   id: string;
   content: string;
   isUser: boolean;
+  isError: boolean;
   timestamp: Date;
 }
 
@@ -18,13 +20,15 @@ export function ChatbotPanel() {
     {
       id: "1",
       content:
-        "안녕하세요! DICOM 영상 분석을 도와드리겠습니다. 궁금한 점이 있으시면 언제든 물어보세요.",
+        "안녕하세요! 보조 진단 챗봇입니다. 궁금한 점이 있으시면 언제든 물어보세요.",
       isUser: false,
+      isError: false,
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { mutateAsync: ask, isPending } = useChatbotAsk();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,13 +38,14 @@ export function ChatbotPanel() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
       isUser: true,
+      isError: false,
       timestamp: new Date(),
     };
 
@@ -48,15 +53,28 @@ export function ChatbotPanel() {
     setInputValue("");
 
     // 간단한 자동 응답 (실제로는 API 호출로 대체)
-    setTimeout(() => {
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `"${inputValue}"에 대한 답변입니다. 현재 DICOM 영상을 분석중입니다...`,
+    try {
+      const result = await ask(inputValue);
+      const chatbotResponse: Message = {
+        id: Date.now().toString(),
+        content: result.response,
         isUser: false,
+        isError: false,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, botMessage]);
-    }, 1000);
+      setMessages((prev) => [...prev, chatbotResponse]);
+    } catch (error) {
+      console.log(error);
+
+      const ErrorDisplay: Message = {
+        id: Date.now().toString(),
+        content: "오류, 질문을 다시 해주세요.",
+        isUser: false,
+        isError: true,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, ErrorDisplay]);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -90,6 +108,7 @@ export function ChatbotPanel() {
                 message.isUser
                   ? "bg-primary text-primary-foreground"
                   : "bg-gray-700 text-white",
+                message.isError && "border border-red-500",
               )}
             >
               {message.content}
@@ -108,6 +127,7 @@ export function ChatbotPanel() {
             onKeyPress={handleKeyPress}
             placeholder="메시지를 입력하세요..."
             className="flex-1 bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-primary"
+            disabled={isPending}
           />
           <Button
             onClick={handleSendMessage}
