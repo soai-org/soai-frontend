@@ -81,14 +81,14 @@ export function useStudiesByPatientUUID() {
   return useMutation({
     mutationFn: async ({
       patientUuid,
-      page = 1,
-      size = 10,
+      limit = 10,
+      since = 0,
     }: { patientUuid: string } & Pagination) => {
       const data: OrthancDetailRequest & Pagination = {
         patientUuid,
         level: Level.Study,
-        page,
-        size,
+        limit,
+        since,
       };
 
       const session = await getSession();
@@ -111,14 +111,14 @@ export function useSeriesByStudyUUID() {
   return useMutation({
     mutationFn: async ({
       studyUuid,
-      page = 1,
-      size = 10,
+      since = 0,
+      limit = 10,
     }: { studyUuid: string } & Pagination) => {
       const data: { studyUuid: string; level: Level } & Pagination = {
         studyUuid,
         level: Level.Series,
-        page,
-        size,
+        since,
+        limit,
       };
 
       const session = await getSession();
