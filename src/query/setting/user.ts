@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "@/query/axios";
 import { User } from "@/types/user";
+import { getSession } from "next-auth/react";
 
 interface Pagination {
   offset: number;
@@ -21,13 +22,15 @@ export function useUserList({ offset = 0, limit = 10 }: Pagination) {
     queryKey: [paths.user, offset, limit],
     queryFn: async (): Promise<User[]> => {
       try {
-        // 추후 페이지네이션 기능 추가하면 추가
-        // const searchParams = new URLSearchParams({
-        //   page: page.toString(),
-        //   limit: limit.toString(),
-        // });
+        const session = await getSession();
 
-        const res = await axios.get(`${paths.userList}`);
+        if (!session) {
+          throw new Error("세션이 없습니다.");
+        }
+
+        const res = await axios.get(`${paths.userList}`, {
+          headers: { Authorization: `Bearer ${session.accessToken}` },
+        });
         return res.data as User[];
       } catch (error) {
         console.log(error);
@@ -42,7 +45,14 @@ export function useUserCreate() {
   return useMutation({
     mutationFn: async (user: User) => {
       try {
-        const res = await axios.post(paths.userCreate, user);
+        const session = await getSession();
+
+        if (!session) {
+          throw new Error("세션이 없습니다.");
+        }
+        const res = await axios.post(paths.userCreate, user, {
+          headers: { Authorization: `Bearer ${session.accessToken}` },
+        });
         if (res.status == 200) return true;
         else {
           return false;
@@ -59,7 +69,15 @@ export function useUserDelete() {
   return useMutation({
     mutationFn: async (userId: string) => {
       try {
-        const res = await axios.delete(`${paths.userDelete}/${userId}`);
+        const session = await getSession();
+
+        if (!session) {
+          throw new Error("세션이 없습니다.");
+        }
+
+        const res = await axios.delete(`${paths.userDelete}/${userId}`, {
+          headers: { Authorization: `Bearer ${session.accessToken}` },
+        });
         if (res.status == 200) return true;
         else {
           return false;
@@ -76,7 +94,15 @@ export function useUserUpdate() {
   return useMutation({
     mutationFn: async (user: Partial<User> & Pick<User, "userId">) => {
       try {
-        const res = await axios.put(`${paths.userEdit}`, user);
+        const session = await getSession();
+
+        if (!session) {
+          throw new Error("세션이 없습니다.");
+        }
+
+        const res = await axios.put(`${paths.userEdit}`, user, {
+          headers: { Authorization: `Bearer ${session.accessToken}` },
+        });
         if (res.status == 200) return true;
         else {
           return false;
