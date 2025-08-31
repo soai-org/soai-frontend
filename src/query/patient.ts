@@ -44,7 +44,7 @@ export function useSearchPatientByName(name: string) {
     enabled: !!name,
     select: (data: Dicom[]): Patient[] => {
       return data.map((dicom) => ({
-        uuid: dicom.MainDicomTags.PatientID,
+        uuid: dicom.ID,
         name: dicom.MainDicomTags.PatientName,
         birthdate: dicom.MainDicomTags.PatientBirthDate,
         gender: dicom.MainDicomTags.PatientSex,
@@ -95,7 +95,11 @@ export function useStudiesByPatientUUID() {
       if (!session?.accessToken) return [];
 
       try {
-        const res = await axios.post<StudyCard[]>(requestUrl, data);
+        const res = await axios.post<StudyCard[]>(requestUrl, data, {
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        });
         return res.data;
       } catch (error) {
         console.log(error);

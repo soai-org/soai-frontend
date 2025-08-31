@@ -124,7 +124,10 @@ export function MainSidebar({ onDataRequest }: AppSidebarProps) {
                   <strong>검색 건수:</strong> {selectedPatient.searchCount}
                 </p>
               </div>
-              <Button className="w-full" onClick={handleDataRequest}>
+              <Button
+                className="w-full hover:cursor-pointer"
+                onClick={handleDataRequest}
+              >
                 관련 데이터 요청
               </Button>
             </>
@@ -135,14 +138,17 @@ export function MainSidebar({ onDataRequest }: AppSidebarProps) {
         <div className="mt-auto p-4 border-t border-gray-200 space-y-2">
           <Button
             variant="ghost"
-            className="w-full justify-start"
+            className="w-full justify-start hover:cursor-pointer"
             onClick={() => signOut({ redirectTo: "/signin" })}
           >
             <LogOut className="mr-2 h-4 w-4" />
             로그아웃
           </Button>
           <Link href="/setting/users" passHref>
-            <Button variant="ghost" className="w-full justify-start">
+            <Button
+              variant="ghost"
+              className="w-full justify-start hover:cursor-pointer"
+            >
               <Settings className="mr-2 h-4 w-4" />
               설정
             </Button>
