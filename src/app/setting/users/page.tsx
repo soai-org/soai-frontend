@@ -42,9 +42,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { UserEditModal } from "@/components/UserEditModal";
-import { UserDeleteModal } from "@/components/UserDeleteModal";
-import { UserCreateModal } from "@/components/UserCreateModal";
+import { UserEditModal } from "@/components/setting/UserEditModal";
+import { UserDeleteModal } from "@/components/setting/UserDeleteModal";
+import { UserCreateModal } from "@/components/setting/UserCreateModal";
 import {
   Search,
   MoreHorizontal,

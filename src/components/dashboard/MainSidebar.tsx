@@ -18,7 +18,7 @@ import { signOut } from "next-auth/react";
 import { useSearchPatientByName } from "@/query/patient";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Patient } from "@/types/patient";
-import Loading from "./Loading";
+import Loading from "../Loading";
 import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {

@@ -4,11 +4,11 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-} from "./ui/select";
-import { Separator } from "./ui/separator";
+} from "../ui/select";
+import { Separator } from "../ui/separator";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ChatbotPanel } from "./ChatbotPanel";
 

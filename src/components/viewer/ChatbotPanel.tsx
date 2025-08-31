@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Send, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChatbotAsk } from "@/query/ai/chatbot";

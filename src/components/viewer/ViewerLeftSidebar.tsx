@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { MetadataDisplay } from "./MetadataDisplay";
 import { signOut } from "next-auth/react";
 import { useSeriesByStudyUUID } from "@/query/patient";
 import { SeriesCard } from "@/types/patient";
-import { SeriesThumbnail } from "./viewer/SeriesThumbnail";
+import { SeriesThumbnail } from "./SeriesThumbnail";
 
 interface ViewerLeftSidebarProps {
   isCollapsed: boolean;

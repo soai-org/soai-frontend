@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { MainSidebar } from "@/components/MainSidebar";
+import { MainSidebar } from "@/components/dashboard/MainSidebar";
 import { useStudiesByPatientUUID } from "@/query/patient";
 import { Patient } from "@/types/patient";
 import { ThumbnailByBase64 } from "@/components/dashboard/Thumbnail";

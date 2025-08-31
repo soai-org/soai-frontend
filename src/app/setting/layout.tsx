@@ -1,4 +1,4 @@
-import { SettingSidebar } from "@/components/SettingSidebar";
+import { SettingSidebar } from "@/components/setting/SettingSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 export default function SettingLayout({
