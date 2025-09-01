@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../ui/button";
 import { MetadataDisplay } from "./MetadataDisplay";
 import { signOut } from "next-auth/react";
-import { useSeriesByStudyUUID } from "@/query/patient";
-import { SeriesCard } from "@/types/patient";
+import { SeriesCard } from "@/types/viewer/series";
 import { SeriesThumbnail } from "./SeriesThumbnail";
 
 interface ViewerLeftSidebarProps {
+  seriesList?: SeriesCard[];
+  isSeriesLoading: boolean;
   isCollapsed: boolean;
   toggleSidebar: () => void;
   currentSeriesId: string | null;
@@ -19,34 +19,18 @@ interface ViewerLeftSidebarProps {
 }
 
 export function ViewerLeftSidebar({
+  seriesList,
+  isSeriesLoading,
   isCollapsed,
   toggleSidebar,
   currentSeriesId,
   onSeriesSelect,
 }: ViewerLeftSidebarProps) {
-  const searchParams = useSearchParams();
-  const studyId = searchParams.get("studyUID");
-
-  const [seriesList, setSeriesList] = useState<SeriesCard[]>([]);
-  const { mutate: getSeries, isPending } = useSeriesByStudyUUID();
-
   useEffect(() => {
-    if (studyId) {
-      getSeries(
-        { studyUuid: studyId, page: 1, size: 10 },
-        {
-          onSuccess: (data) => {
-            if (data) {
-              setSeriesList(data);
-              if (data.length > 0) {
-                onSeriesSelect(data[0].seriesUuid);
-              }
-            }
-          },
-        },
-      );
+    if (seriesList) {
+      onSeriesSelect(seriesList[0].id);
     }
-  }, [studyId, getSeries, onSeriesSelect]);
+  }, [seriesList, onSeriesSelect]);
 
   return (
     <aside
@@ -75,16 +59,17 @@ export function ViewerLeftSidebar({
           <MetadataDisplay />
           <div className="mt-4">
             <h3 className="text-lg font-semibold mb-2">Series</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {isPending && <p>Loading...</p>}
-              {seriesList.map((series) => (
-                <SeriesThumbnail
-                  key={series.seriesUuid}
-                  series={series}
-                  isSelected={currentSeriesId === series.seriesUuid}
-                  onSelect={onSeriesSelect}
-                />
-              ))}
+            <div className="w-full grid gap-2">
+              {isSeriesLoading && <p>Loading...</p>}
+              {seriesList &&
+                seriesList.map((series) => (
+                  <SeriesThumbnail
+                    key={series.id}
+                    series={series}
+                    isSelected={currentSeriesId === series.id}
+                    onSelect={onSeriesSelect}
+                  />
+                ))}
             </div>
           </div>
         </>

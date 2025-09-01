@@ -20,3 +20,11 @@ interface ThumbnailByBase64Props {
 export function ThumbnailByBase64({ imgBase64 }: ThumbnailByBase64Props) {
   return <Image src={imgBase64} alt="thumbnail" width={500} height={500} />;
 }
+
+interface ThumbnailByURLProps {
+  imgUrl: string;
+}
+
+export function ThumbnailByURL({ imgUrl }: ThumbnailByURLProps) {
+  return <Image src={imgUrl} alt="thumbnail" width={100} height={100} />;
+}

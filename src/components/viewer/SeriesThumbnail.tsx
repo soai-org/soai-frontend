@@ -1,7 +1,7 @@
 "use client";
 
-import { ThumbnailByBase64 } from "@/components/dashboard/Thumbnail";
-import { SeriesCard } from "@/types/patient";
+import { ThumbnailByURL } from "@/components/dashboard/Thumbnail";
+import { SeriesCard } from "@/types/viewer/series";
 import { cn } from "@/lib/utils";
 
 interface SeriesThumbnailProps {
@@ -18,15 +18,17 @@ export function SeriesThumbnail({
   return (
     <div
       className={cn(
-        "cursor-pointer border-2 border-transparent rounded-md hover:border-primary",
+        "flex items-center w-full cursor-pointer border-2 border-transparent rounded-md hover:border-primary",
         isSelected && "border-primary",
       )}
-      onClick={() => onSelect(series.seriesUuid)}
+      onClick={() => onSelect(series.id)}
     >
       <div className="rounded-md overflow-hidden">
-        <ThumbnailByBase64 imgByteString={series.thumbnailImage} />
+        <ThumbnailByURL imgUrl={series.thumbnailImage} />
       </div>
-      <p className="text-xs text-center mt-1">{series.seriesDescription}</p>
+      <p className="text-xs text-center mt-1 w-full">
+        {series.mainDicomTags.modality}
+      </p>
     </div>
   );
 }

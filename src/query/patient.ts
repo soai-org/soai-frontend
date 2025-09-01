@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "./axios";
 import { Dicom, Level } from "@/types/DICOM";
-import { InstanceCard, Patient, SeriesCard, StudyCard } from "@/types/patient";
+import { InstanceCard, Patient, StudyCard } from "@/types/patient";
 import { Pagination } from "@/types/pagination";
 import { getSession } from "next-auth/react";
 
@@ -54,27 +54,6 @@ export function useSearchPatientByName(name: string) {
   });
 }
 
-// export function useSearchStudiesByPatient(patientUUID: string) {
-//   return useQuery({
-//     queryKey: [patientUUID],
-//     queryFn: async () => {
-//       const requestUrl = dashboardPath + "/findbyuuid";
-//       const data: OrthancDetailRequest = {
-//         uuid: patientUUID,
-//         level: Level.Patient,
-//       };
-
-//       try {
-//         const res = await axios.post(requestUrl, data);
-//         return res.data;
-//       } catch (error) {
-//         console.log(error);
-//         return [];
-//       }
-//     },
-//   });
-// }
-
 export function useStudiesByPatientUUID() {
   const requestUrl = dashboardPath + "/studycards";
 
@@ -109,36 +88,6 @@ export function useStudiesByPatientUUID() {
   });
 }
 
-export function useSeriesByStudyUUID() {
-  const requestUrl = dashboardPath + "/seriescards";
-
-  return useMutation({
-    mutationFn: async ({
-      studyUuid,
-      since = 0,
-      limit = 10,
-    }: { studyUuid: string } & Pagination) => {
-      const data: { studyUuid: string; level: Level } & Pagination = {
-        studyUuid,
-        level: Level.Series,
-        since,
-        limit,
-      };
-
-      const session = await getSession();
-      if (!session?.accessToken) return [];
-
-      try {
-        const res = await axios.post<SeriesCard[]>(requestUrl, data);
-        return res.data;
-      } catch (error) {
-        console.log(error);
-        return [];
-      }
-    },
-  });
-}
-
 export function useInstancesBySeriesUUID() {
   const requestUrl = dashboardPath + "/instances";
 
@@ -153,7 +102,9 @@ export function useInstancesBySeriesUUID() {
       if (!session?.accessToken) return [];
 
       try {
-        const res = await axios.post<InstanceCard[]>(requestUrl, data);
+        const res = await axios.post<InstanceCard[]>(requestUrl, data, {
+          headers: { Authorization: `Bearer ${session.accessToken}` },
+        });
         return res.data;
       } catch (error) {
         console.log(error);

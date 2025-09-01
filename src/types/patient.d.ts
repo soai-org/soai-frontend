@@ -18,12 +18,6 @@ export interface StudyCard {
   patientSex: string;
 }
 
-export interface SeriesCard {
-  seriesUuid: string;
-  seriesDescription: string;
-  thumbnailImage: string;
-}
-
 export interface InstanceCard {
   instanceUuid: string;
 }
