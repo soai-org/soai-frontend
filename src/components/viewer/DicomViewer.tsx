@@ -1,15 +1,13 @@
 "use client";
 
-import React, { memo, useEffect, useRef, useState } from "react";
+import React, { memo, useContext, useEffect, useRef } from "react";
 import {
   RenderingEngine,
   Enums,
-  init as csCoreInit,
   StackViewport,
   getRenderingEngine,
 } from "@cornerstonejs/core";
 import {
-  init as csToolInit,
   ToolGroupManager,
   WindowLevelTool,
   ZoomTool,
@@ -18,8 +16,8 @@ import {
   PanTool,
 } from "@cornerstonejs/tools";
 import { IToolGroup } from "@cornerstonejs/tools/types";
-import { getSession } from "next-auth/react";
 import { SeriesCard } from "@/types/viewer/series";
+import { CornerstoneContext } from "@/providers/CornerstoneProvider";
 
 // Define constants outside the component
 const renderingEngineId = "viewerEngine";
@@ -32,7 +30,7 @@ interface DicomViewerProps {
 }
 
 const DicomViewer = memo(({ series, setToolGroup }: DicomViewerProps) => {
-  const [init, setInit] = useState(false);
+  const isInit = useContext(CornerstoneContext);
   const viewerElement = useRef<HTMLDivElement>(null);
 
   // Effect for one-time setup and cleanup
@@ -41,38 +39,12 @@ const DicomViewer = memo(({ series, setToolGroup }: DicomViewerProps) => {
       return;
     }
 
-    // 초기화 진행 후 다시 실행 방지
-    if (init) {
-      return;
-    }
-
-    const setup = async () => {
-      const session = await getSession();
-      if (!session?.accessToken) {
-        throw new Error("세션이 없습니다.");
-      }
-
+    const setup = () => {
       if (!viewerElement.current) {
         return;
       }
 
       const element = viewerElement.current;
-
-      // Init libraries
-      csCoreInit();
-      csToolInit();
-      const dicomImageLoaderModule = await import(
-        "@cornerstonejs/dicom-image-loader"
-      );
-      dicomImageLoaderModule.init({
-        maxWebWorkers: 1,
-        beforeSend(xhr) {
-          xhr.setRequestHeader(
-            "Authorization",
-            `Bearer ${session.accessToken}`,
-          );
-        },
-      });
 
       // Create and enable rendering engine
       const renderingEngine = new RenderingEngine(renderingEngineId);
@@ -109,9 +81,7 @@ const DicomViewer = memo(({ series, setToolGroup }: DicomViewerProps) => {
       setToolGroup(toolGroup);
     };
 
-    setup().then(() => {
-      setInit(true);
-    });
+    setup();
 
     return () => {
       try {
@@ -126,7 +96,7 @@ const DicomViewer = memo(({ series, setToolGroup }: DicomViewerProps) => {
 
   // Effect for loading data when series changes
   useEffect(() => {
-    if (init && series && series.instances) {
+    if (isInit && series && series.instances.length > 0) {
       const renderingEngine = getRenderingEngine(renderingEngineId);
       if (!renderingEngine) {
         console.log("렌더링 엔진을 가지고 오는데 실패했습니다.");
@@ -144,14 +114,15 @@ const DicomViewer = memo(({ series, setToolGroup }: DicomViewerProps) => {
           `wadouri://${process.env.NEXT_PUBLIC_SPRING_SERVER}/api/viewer/dicomfile?instanceUuid=${instance}`,
       );
 
-      console.log(wadouris);
-
       if (wadouris && wadouris.length > 0) {
-        viewport.setStack(wadouris);
-        viewport.render();
+        (async () => {
+          await viewport.setStack(wadouris);
+          viewport.resetCamera();
+          viewport.render();
+        })();
       }
     }
-  }, [series, init]);
+  }, [series, isInit]);
 
   return <div className="h-screen w-screen" ref={viewerElement}></div>;
 });

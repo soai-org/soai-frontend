@@ -90,7 +90,7 @@ export function ViewerLeftSidebar({
         </Button>
         <Button
           variant="ghost"
-          className={`w-full mt-2 text-left hover:bg-red-600/50 ${
+          className={`w-full mt-2 text-left hover:bg-red-600/50 hover:cursor-pointer ${
             isCollapsed ? "justify-center" : "justify-start"
           }`}
           onClick={() => signOut({ redirectTo: "/signin" })}
