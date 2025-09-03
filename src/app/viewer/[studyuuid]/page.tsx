@@ -19,6 +19,9 @@ interface ViewerPageProps {
 function ViewerPage({ params }: ViewerPageProps) {
   const { studyuuid } = use(params);
 
+  // 현재 InstnaceUUID 상태값
+  const [segmentationData, setSegmentationData] = useState<number[]>([]);
+  const [currentInstanceUUID, setCurrentInstanceUUID] = useState("");
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
   const [currentSeriesId, setCurrentSeriesId] = useState<string | null>(null);
@@ -59,6 +62,8 @@ function ViewerPage({ params }: ViewerPageProps) {
         <div className="flex-1 bg-background flex items-center justify-center">
           {seriesList && currentSeriesId && (
             <DicomViewer
+              segmentationData={segmentationData}
+              setCurrentInstanceUUID={setCurrentInstanceUUID}
               series={seriesList.find(
                 (series) => series.id === currentSeriesId,
               )}
@@ -69,8 +74,10 @@ function ViewerPage({ params }: ViewerPageProps) {
       </main>
 
       <ViewerRightSidebar
+        instanceUUID={currentInstanceUUID}
         isCollapsed={isRightSidebarCollapsed}
         toggleSidebar={() => setIsRightSidebarCollapsed((prev) => !prev)}
+        setSegmentationData={setSegmentationData}
       />
     </div>
   );

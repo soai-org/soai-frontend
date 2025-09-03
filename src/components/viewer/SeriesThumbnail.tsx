@@ -23,12 +23,17 @@ export function SeriesThumbnail({
       )}
       onClick={() => onSelect(series.id)}
     >
-      <div className="rounded-md overflow-hidden">
+      <div className="w-full rounded-md overflow-hidden">
         <ThumbnailByURL imgUrl={series.thumbnailImage} />
       </div>
-      <p className="text-xs text-center mt-1 w-full">
-        {series.mainDicomTags.modality}
-      </p>
+      <div className="w-full">
+        <p className="text-xs text-center mt-1 w-full overflow-hidden">
+          {series.mainDicomTags.seriesInstanceUID.slice(0, 12)}
+        </p>
+        <p className="text-xs text-center mt-1 w-full overflow-hidden">
+          {series.mainDicomTags.modality}
+        </p>
+      </div>
     </div>
   );
 }
