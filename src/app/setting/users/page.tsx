@@ -229,7 +229,7 @@ export default function UsersManagementPage() {
       </div> */}
 
       {/* 검색 및 필터 */}
-      <Card className="mb-6">
+      {/* <Card className="mb-6">
         <CardHeader>
           <CardTitle>검색 및 필터</CardTitle>
         </CardHeader>
@@ -264,7 +264,7 @@ export default function UsersManagementPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* 사용자 목록 */}
       <Card>
