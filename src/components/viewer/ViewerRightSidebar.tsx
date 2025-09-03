@@ -124,7 +124,7 @@ export function ViewerRightSidebar({
     },
   ];
 
-  const [selectedModel, setSelectedModel] = useState(modelInfos[0]);
+  const [selectedModelId, setSelectedModelId] = useState("model1");
   const [labeledString, setLabeledLabeledString] = useState("");
 
   return (
@@ -153,13 +153,7 @@ export function ViewerRightSidebar({
             <h3 className="text-lg font-semibold mb-3">AI Model Selection</h3>
             <Separator className="my-2" />
             <Select
-              onValueChange={(selectedModelId) => {
-                const model =
-                  modelInfos.find(
-                    (modelInfo) => modelInfo.id === selectedModelId,
-                  ) || modelInfos[0];
-                setSelectedModel(model);
-              }}
+              onValueChange={setSelectedModelId}
               defaultValue={modelInfos[0].id}
             >
               <SelectTrigger className="w-full bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-primary">
@@ -175,7 +169,12 @@ export function ViewerRightSidebar({
             </Select>
 
             {/* Conditionally rendered UI for the selected model */}
-            {renderModelControls(selectedModel, labeledString)}
+            {renderModelControls(
+              modelInfos.find(
+                (modelInfo) => modelInfo.id === selectedModelId,
+              ) || modelInfos[0],
+              labeledString,
+            )}
           </div>
 
           {/* 하단 챗봇 패널 - 화면 높이의 50% 정도 */}
