@@ -20,6 +20,7 @@ import { CornerstoneContext } from "@/providers/CornerstoneProvider";
 import { ColorLUT } from "@cornerstonejs/core/types";
 import { ViewerMetadata } from "@/types/viewer/metadata";
 import { formatTime } from "@/lib/utils";
+import { fixBrokenUtf8 } from "@/lib/strconv";
 
 // Define constants outside the component
 const renderingEngineId = "viewerEngine";
@@ -134,9 +135,14 @@ const DicomViewer = memo(
             )?.studyTime;
 
             setMetadata({
-              patientName: metaData.get("patientModule", imageId)?.patientName,
+              patientName: fixBrokenUtf8(
+                metaData.get("patientModule", imageId)?.patientName,
+              ),
               patientId: metaData.get("patientModule", imageId)?.patientID,
               studyDate: `${studyDate.year}-${studyDate.month}-${studyDate.day} ${formatTime(studyTime)}`,
+              studyDescription: fixBrokenUtf8(
+                metaData.get("generalStudyModule", imageId)?.studyDescription,
+              ),
               modality: metaData.get("generalSeriesModule", imageId)?.modality,
               size: `${derivedImage.width}X${derivedImage.height}`,
             });

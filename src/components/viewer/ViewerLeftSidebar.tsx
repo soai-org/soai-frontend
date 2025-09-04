@@ -29,6 +29,7 @@ export function ViewerLeftSidebar({
   currentSeriesId,
   onSeriesSelect,
 }: ViewerLeftSidebarProps) {
+  console.log(metadata);
   useEffect(() => {
     if (seriesList) {
       onSeriesSelect(seriesList[0].id);

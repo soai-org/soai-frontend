@@ -20,6 +20,7 @@ interface ViewerPageProps {
 const metadataInit: ViewerMetadata = {
   patientName: "",
   patientId: "",
+  studyDescription: "",
   studyDate: "",
   modality: "",
   size: "",
@@ -101,6 +102,7 @@ function ViewerPage({ params }: ViewerPageProps) {
       </main>
 
       <ViewerRightSidebar
+        metadata={metadata}
         instanceUUID={currentInstanceUUID}
         isCollapsed={isRightSidebarCollapsed}
         toggleSidebar={() => setIsRightSidebarCollapsed((prev) => !prev)}

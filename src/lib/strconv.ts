@@ -1,3 +1,4 @@
+import { metaData } from "@cornerstonejs/core";
 import type { DataSet, Element } from "dicom-parser";
 import iconv from "iconv-lite";
 
@@ -45,4 +46,12 @@ export function mapDicomCharsetToIconv(charset: string | undefined): string {
     return "ISO-2022-JP";
   }
   return "latin1"; // Default fallback
+}
+
+export function fixBrokenUtf8(str: string): string {
+  const bytes = new Uint8Array(str.length);
+  for (let i = 0; i < str.length; i++) {
+    bytes[i] = str.charCodeAt(i) & 0xff;
+  }
+  return new TextDecoder("utf-8").decode(bytes);
 }

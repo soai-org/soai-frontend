@@ -14,11 +14,11 @@ export function MetadataDisplay({ metadata }: MetadataDisplayProps) {
       <div>
         <h3 className="text-md font-semibold mb-2 px-2">Patient Info</h3>
         <div className="space-y-1 text-xs px-2">
-          <div className="flex justify-between">
+          <div className="flex justify-between overflow-hidden text-ellipsis">
             <span className="text-gray-400">Name</span>
             <span>{metadata.patientName}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between overflow-hidden text-ellipsis">
             <span className="text-gray-400">ID</span>
             <span>{metadata.patientId}</span>
           </div>
@@ -31,15 +31,19 @@ export function MetadataDisplay({ metadata }: MetadataDisplayProps) {
       <div>
         <h3 className="text-md font-semibold mb-2 px-2">Image Info</h3>
         <div className="space-y-1 text-xs px-2">
-          <div className="flex justify-between">
+          <div className="flex justify-between overflow-hidden text-ellipsis">
             <span className="text-gray-400">Study Date</span>
             <span>{metadata.studyDate}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between overflow-hidden text-ellipsis">
+            <span className="text-gray-400">Description</span>
+            <span>{metadata.studyDescription}</span>
+          </div>
+          <div className="flex justify-between overflow-hidden text-ellipsis">
             <span className="text-gray-400">Modality</span>
             <span>{metadata.modality}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between overflow-hidden text-ellipsis">
             <span className="text-gray-400">Size</span>
             <span>{metadata.size}</span>
           </div>

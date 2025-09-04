@@ -14,6 +14,7 @@ import { ChatbotPanel } from "./ChatbotPanel";
 import axios from "@/query/axios";
 import { getSession } from "next-auth/react";
 import { Textarea } from "../ui/textarea";
+import { ViewerMetadata } from "@/types/viewer/metadata";
 
 interface ModelInfo {
   id: string;
@@ -46,6 +47,7 @@ const renderModelControls = (
 interface ViewerRightSidebarProps {
   instanceUUID?: string;
   isCollapsed: boolean;
+  metadata: ViewerMetadata;
   toggleSidebar: () => void;
   setSegmentationData: Dispatch<[]>;
 }
@@ -53,6 +55,7 @@ interface ViewerRightSidebarProps {
 export function ViewerRightSidebar({
   instanceUUID,
   isCollapsed,
+  metadata,
   setSegmentationData,
   toggleSidebar,
 }: ViewerRightSidebarProps) {
@@ -108,7 +111,7 @@ export function ViewerRightSidebar({
         try {
           const data = {
             instanceUUID,
-            description: "선천성유문협착증",
+            description: metadata.studyDescription,
           };
           const res = await axios.post("/x-ray/captioning", data, {
             headers: {
