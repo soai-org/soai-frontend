@@ -16,6 +16,7 @@ import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
 
 import { convertToDate } from "@/lib/utils";
+import { LoadingDots } from "@/components/dashboard/LoadingDots";
 
 export default function Home() {
   const [selectedPatientForImages, setSelectedPatientForImages] =
@@ -57,7 +58,8 @@ export default function Home() {
           pagination={true}
           modules={[EffectCoverflow, Pagination]}
         >
-          {studiesData && studiesData.length > 0 ? (
+          {studiesData &&
+            studiesData.length > 0 &&
             studiesData.map((study) => (
               <SwiperSlide key={study.studyUuid} className={"!w-96"}>
                 <Card className="w-full h-full">
@@ -97,10 +99,16 @@ export default function Home() {
                   </Link>
                 </Card>
               </SwiperSlide>
-            ))
-          ) : (
+            ))}
+          {isPending && (
             <p className="col-span-full text-center text-gray-500">
-              해당 환자의 이미지가 없습니다.
+              해당 환자의 정보를 불러오는 중입니다
+              <LoadingDots />
+            </p>
+          )}
+          {!isPending && !studiesData && (
+            <p className="col-span-full text-center text-gray-500">
+              해당 환자의 정보가 없습니다.
             </p>
           )}
         </Swiper>
