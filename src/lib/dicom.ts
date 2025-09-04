@@ -1,3 +1,5 @@
+import { renderingEngineId, viewportId } from "@/types/viewer/constant";
+import { getRenderingEngine } from "@cornerstonejs/core";
 import { VOILUTFunctionType } from "@cornerstonejs/core/enums";
 import { PixelDataTypedArray } from "@cornerstonejs/core/types";
 import dicomParser from "dicom-parser";
@@ -204,4 +206,17 @@ export function convertToImage(
   };
 
   return image;
+}
+
+export function getRenderedInfo() {
+  const renderingEngine = getRenderingEngine(renderingEngineId);
+  if (!renderingEngine) {
+    console.log("엔진이 없습니다.");
+    return;
+  }
+  const viewport = renderingEngine.getViewport(viewportId);
+  if (!viewport) {
+    console.log("뷰포트가 없습니다.");
+    return;
+  }
 }

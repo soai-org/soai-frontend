@@ -19,12 +19,19 @@ interface ViewerPageProps {
 function ViewerPage({ params }: ViewerPageProps) {
   const { studyuuid } = use(params);
 
-  // 현재 InstnaceUUID 상태값
+  // 병변 부위 API 요청 결과값 저장
   const [segmentationData, setSegmentationData] = useState<number[]>([]);
+  // 현재 InstnaceUUID 상태값
   const [currentInstanceUUID, setCurrentInstanceUUID] = useState("");
+  // 현재 시리즈 ID 값
+  const [currentSeriesId, setCurrentSeriesId] = useState<string | null>(null);
+
+  // 처음 viewport로 이미지가 렌더링 되었을 때 -> Toolbar 초기화에 사용
+  const [isRendered, setIsRendered] = useState(false);
+
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
-  const [currentSeriesId, setCurrentSeriesId] = useState<string | null>(null);
+
   const [toolGroup, setToolGroup] = useState<IToolGroup | null>(null);
 
   const { data: seriesList, isLoading: isSeriesLoading } = useSeriesByStudyUUID(
@@ -40,7 +47,11 @@ function ViewerPage({ params }: ViewerPageProps) {
 
   return (
     <div className="relative h-screen dark:bg-gray-900">
-      <ViewerToolbar toolGroup={toolGroup} />
+      <ViewerToolbar
+        toolGroup={toolGroup}
+        setToolGroup={setToolGroup}
+        isViewportInit={isRendered}
+      />
       <Suspense>
         <ViewerLeftSidebar
           seriesList={seriesList}
@@ -68,6 +79,7 @@ function ViewerPage({ params }: ViewerPageProps) {
                 (series) => series.id === currentSeriesId,
               )}
               setToolGroup={setToolGroup}
+              setIsRendered={setIsRendered}
             />
           )}
         </div>

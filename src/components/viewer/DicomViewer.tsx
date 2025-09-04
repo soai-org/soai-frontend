@@ -21,7 +21,7 @@ import {
 import { IToolGroup } from "@cornerstonejs/tools/types";
 import { SeriesCard } from "@/types/viewer/series";
 import { CornerstoneContext } from "@/providers/CornerstoneProvider";
-import { Color, ColorLUT } from "@cornerstonejs/core/types";
+import { ColorLUT } from "@cornerstonejs/core/types";
 
 // Define constants outside the component
 const renderingEngineId = "viewerEngine";
@@ -35,6 +35,7 @@ interface DicomViewerProps {
   segmentationData: number[];
   setCurrentInstanceUUID: Dispatch<string>;
   setToolGroup: (toolGroup: IToolGroup) => void;
+  setIsRendered: Dispatch<boolean>;
 }
 
 const DicomViewer = memo(
@@ -43,6 +44,7 @@ const DicomViewer = memo(
     segmentationData,
     setCurrentInstanceUUID,
     setToolGroup,
+    setIsRendered,
   }: DicomViewerProps) => {
     const isInit = useContext(CornerstoneContext);
     const viewerElement = useRef<HTMLDivElement>(null);
@@ -68,39 +70,6 @@ const DicomViewer = memo(
           type: Enums.ViewportType.STACK,
         };
         renderingEngine.enableElement(viewportInput);
-
-        // Create ToolGroup and add tools
-        const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
-        if (!toolGroup) return;
-
-        addTool(ZoomTool);
-        addTool(WindowLevelTool);
-        addTool(PanTool);
-        addTool(BrushTool);
-        toolGroup.addTool(ZoomTool.toolName);
-        toolGroup.addTool(WindowLevelTool.toolName);
-        toolGroup.addTool(PanTool.toolName);
-        toolGroup.addTool(BrushTool.toolName);
-        toolGroup.addViewport(viewportId, renderingEngineId);
-
-        // Set tool bindings
-        // 마우스 휠 바인딩
-        toolGroup.setToolActive(ZoomTool.toolName, {
-          bindings: [{ mouseButton: csToolsEnums.MouseBindings.Wheel }],
-        });
-        // 마우스 오른쪽 클릭 바인딩
-        toolGroup.setToolActive(PanTool.toolName, {
-          bindings: [{ mouseButton: csToolsEnums.MouseBindings.Auxiliary }],
-        });
-        // 마우스 왼쪽 클릭 바인딩
-        toolGroup.setToolActive(BrushTool.toolName, {
-          bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
-        });
-        // toolGroup.setToolActive(WindowLevelTool.toolName, {
-        //   bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
-        // });
-
-        setToolGroup(toolGroup);
       };
 
       setup();
@@ -177,13 +146,14 @@ const DicomViewer = memo(
               },
             ]);
             viewport.render();
+            setIsRendered(true);
           })();
         }
       }
       return () => {
         segmentation.removeAllSegmentations();
       };
-    }, [series, isInit]);
+    }, [series, isInit, setIsRendered]);
 
     useEffect(() => {
       (async () => {
