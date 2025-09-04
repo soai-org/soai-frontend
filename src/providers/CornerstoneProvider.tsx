@@ -21,7 +21,8 @@ export function CornerstoneProvider({ children }: { children: ReactNode }) {
     const setup = async () => {
       const session = await getSession();
       if (!session?.accessToken) {
-        throw new Error("세션이 없습니다.");
+        console.log("세션이 없습니다.");
+        return;
       }
 
       // Init libraries
