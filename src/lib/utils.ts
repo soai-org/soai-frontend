@@ -21,3 +21,14 @@ export function convertToDate(dateString: string, timeString: string): Date {
 
   return new Date(year, month, day, hours, minutes, seconds);
 }
+
+interface TimeObj {
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+export function formatTime(time: TimeObj): string {
+  const pad = (num: number) => String(num).padStart(2, "0");
+  return `${pad(time.hours)}:${pad(time.minutes)}:${pad(time.seconds)}`;
+}

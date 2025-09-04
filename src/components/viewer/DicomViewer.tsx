@@ -7,21 +7,19 @@ import {
   StackViewport,
   imageLoader,
   getRenderingEngine,
+  metaData,
 } from "@cornerstonejs/core";
 import {
   ToolGroupManager,
-  WindowLevelTool,
-  ZoomTool,
-  BrushTool,
-  addTool,
   Enums as csToolsEnums,
-  PanTool,
   segmentation,
 } from "@cornerstonejs/tools";
 import { IToolGroup } from "@cornerstonejs/tools/types";
 import { SeriesCard } from "@/types/viewer/series";
 import { CornerstoneContext } from "@/providers/CornerstoneProvider";
 import { ColorLUT } from "@cornerstonejs/core/types";
+import { ViewerMetadata } from "@/types/viewer/metadata";
+import { formatTime } from "@/lib/utils";
 
 // Define constants outside the component
 const renderingEngineId = "viewerEngine";
@@ -36,6 +34,7 @@ interface DicomViewerProps {
   setCurrentInstanceUUID: Dispatch<string>;
   setToolGroup: (toolGroup: IToolGroup) => void;
   setIsRendered: Dispatch<boolean>;
+  setMetadata: Dispatch<ViewerMetadata>;
 }
 
 const DicomViewer = memo(
@@ -45,6 +44,7 @@ const DicomViewer = memo(
     setCurrentInstanceUUID,
     setToolGroup,
     setIsRendered,
+    setMetadata,
   }: DicomViewerProps) => {
     const isInit = useContext(CornerstoneContext);
     const viewerElement = useRef<HTMLDivElement>(null);
@@ -112,18 +112,34 @@ const DicomViewer = memo(
             await viewport.setStack(wadouris);
 
             // 이미지 ID 불러오기
-            const url = viewport.getImageIds()[0];
+            const imageId = viewport.getImageIds()[0];
             const uuid =
-              new URL(url.replace("wadouri://", "http://")).searchParams.get(
-                "instanceUuid",
-              ) || "";
+              new URL(
+                imageId.replace("wadouri://", "http://"),
+              ).searchParams.get("instanceUuid") || "";
             setCurrentInstanceUUID(uuid);
             viewport.resetCamera();
 
             // 가상 이미지 생성하기
-            const derivedImage = imageLoader.createAndCacheDerivedImage(
-              viewport.getImageIds()[0],
-            );
+            const derivedImage =
+              imageLoader.createAndCacheDerivedImage(imageId);
+
+            const studyDate = metaData.get(
+              "generalStudyModule",
+              imageId,
+            )?.studyDate;
+            const studyTime = metaData.get(
+              "generalStudyModule",
+              imageId,
+            )?.studyTime;
+
+            setMetadata({
+              patientName: metaData.get("patientModule", imageId)?.patientName,
+              patientId: metaData.get("patientModule", imageId)?.patientID,
+              studyDate: `${studyDate.year}-${studyDate.month}-${studyDate.day} ${formatTime(studyTime)}`,
+              modality: metaData.get("generalSeriesModule", imageId)?.modality,
+              size: `${derivedImage.width}X${derivedImage.height}`,
+            });
 
             // 세그멘테이션 레이어 만들기
             segmentation.addSegmentations([

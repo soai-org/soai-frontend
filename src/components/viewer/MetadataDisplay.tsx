@@ -1,8 +1,13 @@
 "use client";
 
+import { ViewerMetadata } from "@/types/viewer/metadata";
 import { Separator } from "../ui/separator";
 
-export function MetadataDisplay() {
+interface MetadataDisplayProps {
+  metadata: ViewerMetadata;
+}
+
+export function MetadataDisplay({ metadata }: MetadataDisplayProps) {
   return (
     <div className="space-y-4 text-white mb-4">
       {/* Patient Information */}
@@ -11,11 +16,11 @@ export function MetadataDisplay() {
         <div className="space-y-1 text-xs px-2">
           <div className="flex justify-between">
             <span className="text-gray-400">Name</span>
-            <span>John Doe</span>
+            <span>{metadata.patientName}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">ID</span>
-            <span>P12345678</span>
+            <span>{metadata.patientId}</span>
           </div>
         </div>
       </div>
@@ -27,16 +32,16 @@ export function MetadataDisplay() {
         <h3 className="text-md font-semibold mb-2 px-2">Image Info</h3>
         <div className="space-y-1 text-xs px-2">
           <div className="flex justify-between">
-            <span className="text-gray-400">Study ID</span>
-            <span>S98765</span>
+            <span className="text-gray-400">Study Date</span>
+            <span>{metadata.studyDate}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Modality</span>
-            <span>CT</span>
+            <span>{metadata.modality}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Size</span>
-            <span>512x512</span>
+            <span>{metadata.size}</span>
           </div>
         </div>
       </div>

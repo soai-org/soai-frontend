@@ -7,6 +7,7 @@ import { ViewerToolbar } from "@/components/viewer/ViewerToolbar";
 import { Suspense, useState, use } from "react";
 import { IToolGroup } from "@cornerstonejs/tools/types";
 import { useSeriesByStudyUUID } from "@/query/viewer";
+import { ViewerMetadata } from "@/types/viewer/metadata";
 
 interface ViewerPageParams {
   studyuuid: string;
@@ -16,7 +17,16 @@ interface ViewerPageProps {
   params: Promise<ViewerPageParams>;
 }
 
+const metadataInit: ViewerMetadata = {
+  patientName: "",
+  patientId: "",
+  studyDate: "",
+  modality: "",
+  size: "",
+};
+
 function ViewerPage({ params }: ViewerPageProps) {
+  // uuid 동적 뷰어
   const { studyuuid } = use(params);
 
   // 병변 부위 API 요청 결과값 저장
@@ -28,6 +38,9 @@ function ViewerPage({ params }: ViewerPageProps) {
 
   // 처음 viewport로 이미지가 렌더링 되었을 때 -> Toolbar 초기화에 사용
   const [isRendered, setIsRendered] = useState(false);
+
+  // 이미지 메타데이터 상태값 관리
+  const [metadata, setMetadata] = useState<ViewerMetadata>(metadataInit);
 
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
@@ -54,6 +67,7 @@ function ViewerPage({ params }: ViewerPageProps) {
       />
       <Suspense>
         <ViewerLeftSidebar
+          metadata={metadata}
           seriesList={seriesList}
           isCollapsed={isLeftSidebarCollapsed}
           isSeriesLoading={isSeriesLoading}
@@ -80,6 +94,7 @@ function ViewerPage({ params }: ViewerPageProps) {
               )}
               setToolGroup={setToolGroup}
               setIsRendered={setIsRendered}
+              setMetadata={setMetadata}
             />
           )}
         </div>

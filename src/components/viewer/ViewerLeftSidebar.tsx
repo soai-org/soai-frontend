@@ -8,8 +8,10 @@ import { MetadataDisplay } from "./MetadataDisplay";
 import { signOut } from "next-auth/react";
 import { SeriesCard } from "@/types/viewer/series";
 import { SeriesThumbnail } from "./SeriesThumbnail";
+import { ViewerMetadata } from "@/types/viewer/metadata";
 
 interface ViewerLeftSidebarProps {
+  metadata: ViewerMetadata;
   seriesList?: SeriesCard[];
   isSeriesLoading: boolean;
   isCollapsed: boolean;
@@ -19,6 +21,7 @@ interface ViewerLeftSidebarProps {
 }
 
 export function ViewerLeftSidebar({
+  metadata,
   seriesList,
   isSeriesLoading,
   isCollapsed,
@@ -56,7 +59,7 @@ export function ViewerLeftSidebar({
 
       {!isCollapsed && (
         <>
-          <MetadataDisplay />
+          <MetadataDisplay metadata={metadata} />
           <div className="mt-4">
             <h3 className="text-lg font-semibold mb-2">Series</h3>
             <div className="w-full grid gap-2">
