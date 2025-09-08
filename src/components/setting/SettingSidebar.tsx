@@ -12,16 +12,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import {
-  User,
-  Shield,
-  Monitor,
-  Palette,
-  Bell,
-  Database,
-  ArrowLeft,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 
 const settingMenuItems = [
   {

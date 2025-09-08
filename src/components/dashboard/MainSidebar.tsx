@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { signOut } from "next-auth/react";
-import { useSearchPatientByName } from "@/query/patient";
+import { useSearchPatientByName } from "@/query/dashboard/patient";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Patient } from "@/types/patient";
 import Loading from "../Loading";

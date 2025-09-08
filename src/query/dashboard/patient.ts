@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "./axios";
+import axios from "../axios";
 import { Dicom, Level } from "@/types/DICOM";
 import { InstanceCard, Patient, StudyCard } from "@/types/patient";
 import { Pagination } from "@/types/pagination";
