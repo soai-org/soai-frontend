@@ -1,17 +1,21 @@
 "use client";
 
-import { getSession, SessionContext, useSession } from "next-auth/react";
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { init as csCoreInit } from "@cornerstonejs/core";
+import { getSession, useSession } from "next-auth/react";
+import { createContext, ReactNode, useEffect, useState } from "react";
+import { init as csCoreInit, metaData } from "@cornerstonejs/core";
 import { init as csToolInit } from "@cornerstonejs/tools";
 
 export const CornerstoneContext = createContext(false);
+
+metaData.addProvider((type) => {
+  if (type === "imagePlaneModule") {
+    return {
+      imageOrientationPatient: [1, 0, 0, 0, 1, 0],
+    };
+  }
+
+  return undefined;
+});
 
 export function CornerstoneProvider({ children }: { children: ReactNode }) {
   const [isInit, setInit] = useState(false);
@@ -28,8 +32,10 @@ export function CornerstoneProvider({ children }: { children: ReactNode }) {
       // Init libraries
       csCoreInit();
       csToolInit();
-      const { init } = await import("@cornerstonejs/dicom-image-loader");
-      init({
+      const { init: csImageLoaderInit } = await import(
+        "@cornerstonejs/dicom-image-loader"
+      );
+      csImageLoaderInit({
         maxWebWorkers: 1,
         beforeSend(xhr) {
           xhr.setRequestHeader(

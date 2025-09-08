@@ -110,7 +110,8 @@ const DicomViewer = memo(
 
         if (wadouris && wadouris.length > 0) {
           (async () => {
-            await viewport.setStack(wadouris);
+            await viewport.setStack(wadouris, 0);
+            setCurrentInstanceUUIDs(series.instances);
 
             // 이미지 ID 불러오기
             const imageId = viewport.getImageIds()[0];

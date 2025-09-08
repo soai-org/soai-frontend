@@ -17,10 +17,12 @@ import {
   PanTool,
   WindowLevelTool,
   BrushTool,
+  StackScrollTool,
   Enums as csToolsEnums,
   ToolGroupManager,
   addTool,
   segmentation,
+  Enums,
 } from "@cornerstonejs/tools";
 import { IToolGroup } from "@cornerstonejs/tools/types";
 import {
@@ -171,12 +173,22 @@ export function ViewerToolbar({
       addTool(WindowLevelTool);
       addTool(PanTool);
       addTool(BrushTool);
+      addTool(StackScrollTool);
       toolGroup.addTool(ZoomTool.toolName);
       toolGroup.addTool(WindowLevelTool.toolName);
       toolGroup.addTool(PanTool.toolName);
       toolGroup.addTool(BrushTool.toolName);
-      toolGroup.addViewport(viewportId, renderingEngineId);
+      toolGroup.addTool(StackScrollTool.toolName);
 
+      toolGroup.setToolActive(StackScrollTool.toolName, {
+        bindings: [
+          {
+            mouseButton: Enums.MouseBindings.Wheel,
+          },
+        ],
+      });
+
+      toolGroup.addViewport(viewportId, renderingEngineId);
       setToolGroup(toolGroup);
     }
 
