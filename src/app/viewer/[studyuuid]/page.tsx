@@ -33,7 +33,9 @@ function ViewerPage({ params }: ViewerPageProps) {
   // 병변 부위 API 요청 결과값 저장
   const [segmentationData, setSegmentationData] = useState<number[]>([]);
   // 현재 InstnaceUUID 상태값
-  const [currentInstanceUUID, setCurrentInstanceUUID] = useState("");
+  const [currentInstanceUUIDs, setCurrentInstanceUUIDs] = useState<string[]>(
+    [],
+  );
   // 현재 시리즈 ID 값
   const [currentSeriesId, setCurrentSeriesId] = useState<string | null>(null);
 
@@ -89,7 +91,7 @@ function ViewerPage({ params }: ViewerPageProps) {
           {seriesList && currentSeriesId && (
             <DicomViewer
               segmentationData={segmentationData}
-              setCurrentInstanceUUID={setCurrentInstanceUUID}
+              setCurrentInstanceUUIDs={setCurrentInstanceUUIDs}
               series={seriesList.find(
                 (series) => series.id === currentSeriesId,
               )}
@@ -103,7 +105,7 @@ function ViewerPage({ params }: ViewerPageProps) {
 
       <ViewerRightSidebar
         metadata={metadata}
-        instanceUUID={currentInstanceUUID}
+        instanceUUIDs={currentInstanceUUIDs}
         isCollapsed={isRightSidebarCollapsed}
         toggleSidebar={() => setIsRightSidebarCollapsed((prev) => !prev)}
         setSegmentationData={setSegmentationData}

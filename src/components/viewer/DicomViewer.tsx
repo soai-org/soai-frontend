@@ -32,7 +32,7 @@ const segmentationId = "segmentation";
 interface DicomViewerProps {
   series?: SeriesCard | null;
   segmentationData: number[];
-  setCurrentInstanceUUID: Dispatch<string>;
+  setCurrentInstanceUUIDs: Dispatch<string[]>;
   setToolGroup: (toolGroup: IToolGroup) => void;
   setIsRendered: Dispatch<boolean>;
   setMetadata: Dispatch<ViewerMetadata>;
@@ -42,7 +42,7 @@ const DicomViewer = memo(
   ({
     series,
     segmentationData,
-    setCurrentInstanceUUID,
+    setCurrentInstanceUUIDs,
     setToolGroup,
     setIsRendered,
     setMetadata,
@@ -114,11 +114,6 @@ const DicomViewer = memo(
 
             // 이미지 ID 불러오기
             const imageId = viewport.getImageIds()[0];
-            const uuid =
-              new URL(
-                imageId.replace("wadouri://", "http://"),
-              ).searchParams.get("instanceUuid") || "";
-            setCurrentInstanceUUID(uuid);
             viewport.resetCamera();
 
             // 가상 이미지 생성하기

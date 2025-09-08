@@ -15,6 +15,7 @@ import axios from "@/query/axios";
 import { getSession } from "next-auth/react";
 import { Textarea } from "../ui/textarea";
 import { ViewerMetadata } from "@/types/viewer/metadata";
+import { GraphDialog } from "./GraphDialog";
 
 interface ModelInfo {
   id: string;
@@ -45,7 +46,7 @@ const renderModelControls = (
 };
 
 interface ViewerRightSidebarProps {
-  instanceUUID?: string;
+  instanceUUIDs?: string[];
   isCollapsed: boolean;
   metadata: ViewerMetadata;
   toggleSidebar: () => void;
@@ -53,32 +54,33 @@ interface ViewerRightSidebarProps {
 }
 
 export function ViewerRightSidebar({
-  instanceUUID,
+  instanceUUIDs,
   isCollapsed,
   metadata,
   setSegmentationData,
   toggleSidebar,
 }: ViewerRightSidebarProps) {
+  const [isGraphDialogOpen, setIsGraphDialogOpen] = useState(false);
   const modelInfos: ModelInfo[] = [
     {
       id: "model1",
       name: "X-ray 세그멘테이션 ",
       type: "button",
       handler: async () => {
+        if (!instanceUUIDs || instanceUUIDs.length <= 0) {
+          console.log("인스턴스 UUID가 유효하지 않습니다.");
+          return;
+        }
+
         const session = await getSession();
         if (!session?.accessToken) {
           console.log("세션이 없습니다.");
           return;
         }
 
-        if (!instanceUUID) {
-          console.log("인스턴스 UUID가 유효하지 않습니다.");
-          return;
-        }
-
         try {
           const data = {
-            instanceUUID,
+            instanceUUID: instanceUUIDs[0],
           };
           const res = await axios.post("/x-ray/segmentation-array", data, {
             headers: {
@@ -88,6 +90,7 @@ export function ViewerRightSidebar({
 
           setSegmentationData(res.data.data);
         } catch (error) {
+          console.log(error);
           console.log("요청이 실패했습니다.");
         }
       },
@@ -97,20 +100,20 @@ export function ViewerRightSidebar({
       name: "X-ray 라벨링",
       type: "input-button",
       handler: async () => {
+        if (!instanceUUIDs || instanceUUIDs.length <= 0) {
+          console.log("인스턴스 UUID가 유효하지 않습니다.");
+          return;
+        }
+
         const session = await getSession();
         if (!session?.accessToken) {
           console.log("세션이 없습니다.");
           return;
         }
 
-        if (!instanceUUID) {
-          console.log("인스턴스 UUID가 유효하지 않습니다.");
-          return;
-        }
-
         try {
           const data = {
-            instanceUUID,
+            instanceUUID: instanceUUIDs[0],
             description: metadata.studyDescription,
           };
           const res = await axios.post("/x-ray/captioning", data, {
@@ -121,14 +124,70 @@ export function ViewerRightSidebar({
 
           setLabeledLabeledString(res.data.transcript as string);
         } catch (error) {
+          console.log(error);
           console.log("요청이 실패했습니다.");
         }
+      },
+    },
+    {
+      id: "model3",
+      name: "충수염 진단",
+      type: "button",
+      handler: async () => {
+        if (!instanceUUIDs || instanceUUIDs.length <= 0) {
+          console.log("인스턴스 UUID가 유효하지 않습니다.");
+          return;
+        }
+
+        const session = await getSession();
+        if (!session?.accessToken) {
+          console.log("세션이 없습니다.");
+          return;
+        }
+
+        try {
+          const data = {
+            AppendicitisUuidList: instanceUUIDs,
+          };
+          const res = await axios.post("/appendicitis/diagnosis", data, {
+            headers: {
+              Authorization: `Bearer ${session?.accessToken}`,
+            },
+          });
+
+          setGraphData(res.data);
+          setIsGraphDialogOpen(true);
+        } catch (error) {
+          console.log(error);
+          console.log("요청이 실패했습니다.");
+        }
+      },
+    },
+    {
+      id: "model4",
+      name: "진단 결과 그래프",
+      type: "button",
+      handler: () => {
+        setGraphData({
+          "Appendix visible": 0.4842538833618164,
+          "Free fluid": 0.5486456155776978,
+          "Irregular layers": 0.5130040645599365,
+          "Target sign": 0.5186954140663147,
+          "Tissue reaction": 0.5172619819641113,
+          Lymphadenitis: 0.4826461970806122,
+          "Thick bowel wall": 0.5349217653274536,
+          Coprostasis: 0.5136037468910217,
+          Meteorism: 0.4546169936656952,
+        });
       },
     },
   ];
 
   const [selectedModelId, setSelectedModelId] = useState("model1");
   const [labeledString, setLabeledLabeledString] = useState("");
+  const [graphData, setGraphData] = useState<Record<string, number> | null>(
+    null,
+  );
 
   return (
     <aside
@@ -186,6 +245,11 @@ export function ViewerRightSidebar({
           </div>
         </div>
       )}
+      <GraphDialog
+        data={graphData}
+        isOpen={isGraphDialogOpen}
+        onClose={() => setIsGraphDialogOpen(false)}
+      />
     </aside>
   );
 }
