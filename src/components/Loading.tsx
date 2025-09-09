@@ -7,6 +7,7 @@ export default function Loading() {
         className={"animate-spin"}
         src="/LoadIcon.png"
         fill={true}
+        sizes={"5"}
         alt="loading"
       />
     </div>
