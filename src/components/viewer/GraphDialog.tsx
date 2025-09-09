@@ -13,7 +13,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useMemo } from "react";
 import Loading from "../Loading";
 
@@ -30,7 +30,7 @@ export function GraphDialog({
 }: GraphDialogProps) {
   const { data, chartConfig } = useMemo(() => {
     if (!rawData) {
-      return { data: [], chartConfig: {} };
+      return { data: null, chartConfig: {} };
     }
 
     const chartData = Object.entries(rawData).map(([key, value]) => ({
