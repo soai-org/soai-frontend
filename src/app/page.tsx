@@ -1,163 +1,117 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { MapSidebar } from "@/components/MainSidebar";
-import { Button } from "@/components/ui/button";
+import { MainSidebar } from "@/components/dashboard/MainSidebar";
+import { useStudiesByPatientUUID } from "@/query/dashboard/patient";
+import { Patient } from "@/types/patient";
+import { ThumbnailByBase64 } from "@/components/dashboard/Thumbnail";
+import { Card } from "@/components/ui/card";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { EffectCoverflow, Pagination } from "swiper/modules";
+import Link from "next/link";
 
-interface Patient {
-  name: string;
-  birthdate: string;
-  gender: string;
-  searchCount: number;
-}
+import "swiper/css";
+import "swiper/css/effect-coverflow";
+import "swiper/css/pagination";
 
-interface MedicalImage {
-  id: string;
-  url: string;
-  alt: string;
-  date: string; // Add date property
-  patientName: string; // Add patientName for display below image
-}
-
-const IMAGES_PER_PAGE = 6;
-
-// Helper function to generate dummy dates
-const getRandomDate = () => {
-  const start = new Date(2020, 0, 1);
-  const end = new Date();
-  const date = new Date(
-    start.getTime() + Math.random() * (end.getTime() - start.getTime()),
-  );
-  return date.toISOString().split("T")[0]; // YYYY-MM-DD format
-};
-
-// Dummy data for medical images
-const allMedicalImages: { [key: string]: MedicalImage[] } = {
-  김철수: Array.from({ length: 20 }).map((_, i) => ({
-    id: `kim-chul-soo-${i + 1}`,
-    url: `https://placeholder.co/150/FF0000/FFFFFF?text=김철수+이미지+${i + 1}`,
-    alt: `김철수 의료 이미지 ${i + 1}`,
-    date: getRandomDate(),
-    patientName: "김철수",
-  })),
-  이영희: Array.from({ length: 15 }).map((_, i) => ({
-    id: `lee-young-hee-${i + 1}`,
-    url: `https://placeholder.co/150/0000FF/FFFFFF?text=이영희+이미지+${i + 1}`,
-    alt: `이영희 의료 이미지 ${i + 1}`,
-    date: getRandomDate(),
-    patientName: "이영희",
-  })),
-  박민수: Array.from({ length: 25 }).map((_, i) => ({
-    id: `park-min-soo-${i + 1}`,
-    url: `https://placeholder.co/150/00FF00/FFFFFF?text=박민수+이미지+${i + 1}`,
-    alt: `박민수 의료 이미지 ${i + 1}`,
-    date: getRandomDate(),
-    patientName: "박민수",
-  })),
-  // Add more dummy data for other patients as needed
-};
+import { convertToDate } from "@/lib/utils";
+import { LoadingDots } from "@/components/dashboard/LoadingDots";
 
 export default function Home() {
   const [selectedPatientForImages, setSelectedPatientForImages] =
     useState<Patient | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [currentImages, setCurrentImages] = useState<MedicalImage[]>([]);
-  const [totalImages, setTotalImages] = useState(0);
 
-  const fetchImagesForPatient = (patientName: string, page: number) => {
-    const patientImages = allMedicalImages[patientName] || [];
-    setTotalImages(patientImages.length);
+  // Pagination을 위한 상태값
+  const [since, setPage] = useState(0);
+  const [limit, setSize] = useState(6);
 
-    const startIndex = (page - 1) * IMAGES_PER_PAGE;
-    const endIndex = startIndex + IMAGES_PER_PAGE;
-    setCurrentImages(patientImages.slice(startIndex, endIndex));
-  };
+  const {
+    data: studiesData,
+    mutateAsync,
+    isPending,
+  } = useStudiesByPatientUUID();
 
-  useEffect(() => {
-    if (selectedPatientForImages) {
-      fetchImagesForPatient(selectedPatientForImages.name, currentPage);
-    } else {
-      setCurrentImages([]);
-      setTotalImages(0);
-      setCurrentPage(1);
-    }
-  }, [selectedPatientForImages, currentPage]);
-
-  const handleDataRequest = (patient: Patient) => {
+  const handleDataRequest = async (patient: Patient) => {
     setSelectedPatientForImages(patient);
-    setCurrentPage(1); // Reset to first page on new patient selection
+    await mutateAsync({ patientUuid: patient.uuid, limit, since });
+    setPage(0); // Reset to first page on new patient selection
   };
-
-  const totalPages = Math.ceil(totalImages / IMAGES_PER_PAGE);
 
   return (
     <SidebarProvider>
-      <MapSidebar onDataRequest={handleDataRequest} />
-      <main className="flex flex-col flex-1 p-4">
-        <div className="flex items-center mb-4">
-          <SidebarTrigger />
-          <h1 className="text-2xl font-bold ml-4 text-center flex-1">
-            {selectedPatientForImages
-              ? `${selectedPatientForImages.name} 환자의 의료 이미지`
-              : "환자를 선택하여 의료 이미지를 확인하세요."}
-          </h1>
-        </div>
-
-        {selectedPatientForImages && (
-          <div className="flex-1 flex flex-col w-full">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-              {currentImages.length > 0 ? (
-                currentImages.map((image) => (
-                  <div
-                    key={image.id}
-                    className="border rounded-lg overflow-hidden shadow-md"
+      <MainSidebar onDataRequest={handleDataRequest} />
+      <SidebarTrigger />
+      <main className="w-full h-screen flex items-center">
+        <Swiper
+          effect={"coverflow"}
+          grabCursor={true}
+          centeredSlides={true}
+          slidesPerView={"auto"}
+          coverflowEffect={{
+            rotate: 20,
+            stretch: 0,
+            depth: 150,
+            modifier: 1,
+            slideShadows: true,
+          }}
+          pagination={true}
+          modules={[EffectCoverflow, Pagination]}
+        >
+          {studiesData &&
+            studiesData.length > 0 &&
+            studiesData.map((study) => (
+              <SwiperSlide key={study.studyUuid} className={"!w-96"}>
+                <Card className="w-full h-full">
+                  <Link
+                    href={`/viewer/${study.studyUuid}`}
+                    className="group relative block w-full h-full"
                   >
-                    <div className="w-full aspect-square relative">
-                      <img
-                        src={image.url}
-                        alt={image.alt}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
+                    <div className="w-full h-full">
+                      <ThumbnailByBase64 imgBase64={study.thumbnailImage} />
                     </div>
-                    <div className="p-2 text-sm text-center">
-                      <p className="font-semibold">{image.patientName}</p>
-                      <p className="text-gray-500">{image.date}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="col-span-full text-center text-gray-500">
-                  해당 환자의 이미지가 없습니다.
-                </p>
-              )}
-            </div>
+                    <div className="absolute inset-0 grid grid-cols-[auto,1fr] items-center gap-x-3 gap-y-1 p-4 bg-black bg-opacity-60 text-white opacity-0 transition-opacity group-hover:opacity-100">
+                      <p className="font-semibold border-b border-white">
+                        Patient:
+                      </p>
+                      <p className="truncate">{study.patientName}</p>
 
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-auto">
-                <Button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(1, prev - 1))
-                  }
-                  disabled={currentPage === 1}
-                >
-                  이전
-                </Button>
-                <span>
-                  페이지 {currentPage} / {totalPages}
-                </span>
-                <Button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                >
-                  다음
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+                      <p className="font-semibold border-b border-white">
+                        Description:
+                      </p>
+                      <p className="truncate">{study.studyDescription}</p>
+
+                      <p className="font-semibold border-b border-white">
+                        Date:
+                      </p>
+                      <p className="truncate">
+                        {convertToDate(
+                          study.studyDate,
+                          study.studyTime,
+                        ).toISOString()}
+                      </p>
+
+                      <p className="font-semibold border-b border-white">
+                        Study UUID:
+                      </p>
+                      <p className="truncate">{study.studyUuid}</p>
+                    </div>
+                  </Link>
+                </Card>
+              </SwiperSlide>
+            ))}
+          {isPending && (
+            <p className="col-span-full text-center text-gray-500">
+              해당 환자의 정보를 불러오는 중입니다
+              <LoadingDots />
+            </p>
+          )}
+          {!isPending && !studiesData && (
+            <p className="col-span-full text-center text-gray-500">
+              해당 환자의 정보가 없습니다.
+            </p>
+          )}
+        </Swiper>
       </main>
     </SidebarProvider>
   );
