@@ -18,6 +18,7 @@ import { ViewerMetadata } from "@/types/viewer/metadata";
 import { GraphDialog } from "./GraphDialog";
 import Loading from "../Loading";
 import { segmentationRender } from "@/lib/dicom";
+import { ResponseSkinDiagnosis } from "@/types/viewer/response";
 
 interface ModelInfo {
   id: string;
@@ -130,7 +131,7 @@ export function ViewerRightSidebar({
           });
           setIsPending(false);
 
-          setLabeledLabeledString(res.data.transcript as string);
+          setLabeledString(res.data.transcript as string);
         } catch (error) {
           console.log(error);
           console.log("요청이 실패했습니다.");
@@ -174,12 +175,52 @@ export function ViewerRightSidebar({
         }
       },
     },
+    {
+      id: "model4",
+      name: "피부 질환 분류",
+      type: "button",
+      handler: async () => {
+        if (!instanceUUIDs || instanceUUIDs.length <= 0) {
+          console.log("인스턴스 UUID가 유효하지 않습니다.");
+          return;
+        }
+
+        const session = await getSession();
+        if (!session?.accessToken) {
+          console.log("세션이 없습니다.");
+          return;
+        }
+
+        try {
+          setIsGraphDialogOpen(true);
+          const body = {
+            instanceUUID: instanceUUIDs[0],
+          };
+          const { data } = await axios.post<ResponseSkinDiagnosis>(
+            "/skin-trouble/prediction",
+            body,
+            {
+              headers: {
+                Authorization: `Bearer ${session?.accessToken}`,
+              },
+            },
+          );
+
+          setGraphData(data.prediction);
+          setLabeledString(data.label);
+        } catch (error) {
+          console.log(error);
+          console.log("요청이 실패했습니다.");
+          setIsGraphDialogOpen(false);
+        }
+      },
+    },
   ];
 
   const [isGraphDialogOpen, setIsGraphDialogOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState("model1");
-  const [labeledString, setLabeledLabeledString] = useState("");
+  const [labeledString, setLabeledString] = useState("");
   const [graphData, setGraphData] = useState<Record<string, number> | null>(
     null,
   );
@@ -242,11 +283,13 @@ export function ViewerRightSidebar({
         </div>
       )}
       <GraphDialog
+        label={labeledString}
         data={graphData}
         isOpen={isGraphDialogOpen}
         onClose={() => {
           setGraphData(null);
           setIsGraphDialogOpen(false);
+          setLabeledString("");
         }}
       />
     </aside>

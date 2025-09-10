@@ -19,12 +19,14 @@ import Loading from "../Loading";
 
 interface GraphDialogProps {
   data?: Record<string, number> | null;
+  label?: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function GraphDialog({
   data: rawData,
+  label,
   isOpen,
   onClose,
 }: GraphDialogProps) {
@@ -55,6 +57,7 @@ export function GraphDialog({
           <DialogTitle>진단 결과 그래프</DialogTitle>
           <DialogDescription>
             AI 모델의 분석 결과를 그래프로 표시합니다.
+            {label ? <p>{`결과: ${label}`}</p> : ""}
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 w-full h-full">

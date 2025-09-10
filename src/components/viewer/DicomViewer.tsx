@@ -122,12 +122,12 @@ const DicomViewer = memo(
           return;
         }
 
-        // const wadouris = series?.instances.map(
-        //   (instance) =>
-        //     `wadouri://${process.env.NEXT_PUBLIC_SPRING_SERVER}/api/viewer/dicomfile?instanceUuid=${instance}`,
-        // );
+        const wadouris = series?.instances.map(
+          (instance) =>
+            `wadouri://${process.env.NEXT_PUBLIC_SPRING_SERVER}/api/viewer/dicomfile?instanceUuid=${instance}`,
+        );
 
-        const wadouris = [`wadouri://localhost:4000/dummy.dcm`];
+        // const wadouris = [`wadouri://localhost:4000/dummy.dcm`];
 
         if (wadouris && wadouris.length > 0) {
           (async () => {
