@@ -36,7 +36,6 @@ export function CornerstoneProvider({ children }: { children: ReactNode }) {
         "@cornerstonejs/dicom-image-loader"
       );
       csImageLoaderInit({
-        maxWebWorkers: 1,
         beforeSend(xhr) {
           xhr.setRequestHeader(
             "Authorization",

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Dispatch, useEffect, useState } from "react";
+import React, { Dispatch, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   ZoomIn,
@@ -17,12 +17,9 @@ import {
   PanTool,
   WindowLevelTool,
   BrushTool,
-  StackScrollTool,
   Enums as csToolsEnums,
   ToolGroupManager,
-  addTool,
   segmentation,
-  Enums,
 } from "@cornerstonejs/tools";
 import { IToolGroup } from "@cornerstonejs/tools/types";
 import {
@@ -36,11 +33,11 @@ import {
   imageLoader,
   StackViewport,
 } from "@cornerstonejs/core";
+import { setActiveSegmentation } from "@cornerstonejs/tools/segmentation/activeSegmentation";
 
 interface ViewerToolbarProps {
-  toolGroup: IToolGroup | null;
-  setToolGroup: Dispatch<IToolGroup>;
-  isViewportInit: boolean;
+  setToolGroup?: Dispatch<IToolGroup>;
+  isViewportInit?: boolean;
 }
 
 const setActiveTool = (toolName: string) => {
@@ -74,9 +71,7 @@ const tools = [
     name: "Brush",
     icon: Brush,
     toolName: BrushTool.toolName,
-    handler: () => {
-      setActiveTool(BrushTool.toolName);
-
+    handler: async () => {
       const renderingEngine = getRenderingEngine(renderingEngineId);
       if (!renderingEngine) {
         console.log("엔진이 없습니다.");
@@ -91,14 +86,15 @@ const tools = [
       // Segmentation 생성 여부 체크
       const activeSegmentation = segmentation.getActiveSegmentation(viewportId);
       if (activeSegmentation?.segmentationId === brushSegmentationId) {
+        setActiveSegmentation(viewportId, brushSegmentationId);
         console.log(`이미 ${brushSegmentationId}가 존재합니다.`);
         return;
       }
 
       // 가상 이미지 생성하기
-      const derivedImage = imageLoader.createAndCacheDerivedImage(
-        viewport.getImageIds()[0],
-      );
+      const derivedImageIds = imageLoader
+        .createAndCacheDerivedLabelmapImages(viewport.getImageIds())
+        .map((image) => image.imageId);
 
       // 세그멘테이션 레이어 만들기
       segmentation.addSegmentations([
@@ -108,7 +104,7 @@ const tools = [
             // The type of segmentation
             type: csToolsEnums.SegmentationRepresentations.Labelmap,
             data: {
-              imageIds: [derivedImage.imageId],
+              imageIds: derivedImageIds,
             },
           },
         },
@@ -121,7 +117,8 @@ const tools = [
         },
       ]);
 
-      viewport.render();
+      setActiveSegmentation(viewportId, brushSegmentationId);
+      setActiveTool(BrushTool.toolName);
     },
   },
   {
@@ -145,57 +142,8 @@ const tools = [
   },
 ];
 
-export function ViewerToolbar({
-  toolGroup,
-  setToolGroup,
-  isViewportInit,
-}: ViewerToolbarProps) {
+export function ViewerToolbar({}: ViewerToolbarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  useEffect(() => {
-    // Create ToolGroup and add tools
-    if (isViewportInit) {
-      const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
-      if (!toolGroup) return;
-
-      const renderingEngine = getRenderingEngine(renderingEngineId);
-      if (!renderingEngine) {
-        console.log("엔진이 없습니다.");
-        return;
-      }
-      const viewport = renderingEngine.getViewport(viewportId);
-      if (!viewport) {
-        console.log("뷰포트가 없습니다.");
-        return;
-      }
-
-      addTool(ZoomTool);
-      addTool(WindowLevelTool);
-      addTool(PanTool);
-      addTool(BrushTool);
-      addTool(StackScrollTool);
-      toolGroup.addTool(ZoomTool.toolName);
-      toolGroup.addTool(WindowLevelTool.toolName);
-      toolGroup.addTool(PanTool.toolName);
-      toolGroup.addTool(BrushTool.toolName);
-      toolGroup.addTool(StackScrollTool.toolName);
-
-      toolGroup.setToolActive(StackScrollTool.toolName, {
-        bindings: [
-          {
-            mouseButton: Enums.MouseBindings.Wheel,
-          },
-        ],
-      });
-
-      toolGroup.addViewport(viewportId, renderingEngineId);
-      setToolGroup(toolGroup);
-    }
-
-    return () => {
-      ToolGroupManager.destroy();
-    };
-  }, [isViewportInit]);
 
   return (
     <div

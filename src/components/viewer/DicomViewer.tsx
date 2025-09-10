@@ -10,18 +10,23 @@ import {
   metaData,
 } from "@cornerstonejs/core";
 import {
+  BrushTool,
+  PanTool,
+  StackScrollTool,
   ToolGroupManager,
+  WindowLevelTool,
+  ZoomTool,
+  addTool,
   Enums as csToolsEnums,
   segmentation,
+  utilities,
 } from "@cornerstonejs/tools";
-import { IToolGroup } from "@cornerstonejs/tools/types";
 import { SeriesCard } from "@/types/viewer/series";
 import { CornerstoneContext } from "@/providers/CornerstoneProvider";
 import { ViewerMetadata } from "@/types/viewer/metadata";
 import { formatTime } from "@/lib/utils";
 import { fixBrokenUtf8 } from "@/lib/strconv";
 import {
-  labelSegmentationId,
   renderingEngineId,
   toolGroupId,
   viewportId,
@@ -29,26 +34,17 @@ import {
 
 interface DicomViewerProps {
   series?: SeriesCard | null;
-  segmentationData: number[];
+  segmentationData?: number[];
   setCurrentInstanceUUIDs: Dispatch<string[]>;
-  setToolGroup: (toolGroup: IToolGroup) => void;
-  setIsRendered: Dispatch<boolean>;
   setMetadata: Dispatch<ViewerMetadata>;
 }
 
 const DicomViewer = memo(
-  ({
-    series,
-    segmentationData,
-    setCurrentInstanceUUIDs,
-    setToolGroup,
-    setIsRendered,
-    setMetadata,
-  }: DicomViewerProps) => {
-    const isInit = useContext(CornerstoneContext);
+  ({ series, setCurrentInstanceUUIDs, setMetadata }: DicomViewerProps) => {
+    const isCornerstoneInit = useContext(CornerstoneContext);
     const viewerElement = useRef<HTMLDivElement>(null);
 
-    // Effect for one-time setup and cleanup
+    // 렌더링 엔진 및 뷰포트 등록
     useEffect(() => {
       if (!window || !document) {
         return;
@@ -59,16 +55,39 @@ const DicomViewer = memo(
           return;
         }
 
-        const element = viewerElement.current;
-
         // Create and enable rendering engine
         const renderingEngine = new RenderingEngine(renderingEngineId);
         const viewportInput = {
           viewportId,
-          element,
+          element: viewerElement.current,
           type: Enums.ViewportType.STACK,
         };
         renderingEngine.enableElement(viewportInput);
+        const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
+        if (!toolGroup) {
+          return;
+        }
+
+        addTool(ZoomTool);
+        addTool(WindowLevelTool);
+        addTool(PanTool);
+        addTool(BrushTool);
+        addTool(StackScrollTool);
+        toolGroup.addTool(ZoomTool.toolName);
+        toolGroup.addTool(WindowLevelTool.toolName);
+        toolGroup.addTool(PanTool.toolName);
+        toolGroup.addTool(BrushTool.toolName);
+        toolGroup.addTool(StackScrollTool.toolName);
+
+        toolGroup.setToolActive(StackScrollTool.toolName, {
+          bindings: [
+            {
+              mouseButton: csToolsEnums.MouseBindings.Wheel,
+            },
+          ],
+        });
+
+        toolGroup.addViewport(viewportId, renderingEngineId);
       };
 
       setup();
@@ -76,17 +95,19 @@ const DicomViewer = memo(
       return () => {
         try {
           ToolGroupManager.destroyToolGroup(toolGroupId);
+          segmentation.removeAllSegmentationRepresentations();
+          segmentation.removeAllSegmentations();
           const renderingEngine = getRenderingEngine(renderingEngineId);
           renderingEngine?.destroy();
         } catch (e) {
           console.error("Error during cleanup:", e);
         }
       };
-    }, [setToolGroup, viewerElement]);
+    }, [viewerElement]);
 
-    // Effect for loading data when series changes
+    // 이미지 메타데이터 출력 로직
     useEffect(() => {
-      if (isInit && series && series.instances.length > 0) {
+      if (isCornerstoneInit && series && series.instances.length > 0) {
         const renderingEngine = getRenderingEngine(renderingEngineId);
         if (!renderingEngine) {
           console.log("렌더링 엔진을 가지고 오는데 실패했습니다.");
@@ -106,18 +127,19 @@ const DicomViewer = memo(
             `wadouri://${process.env.NEXT_PUBLIC_SPRING_SERVER}/api/viewer/dicomfile?instanceUuid=${instance}`,
         );
 
+        // const wadouris = [`wadouri://localhost:4000/dummy.dcm`];
+
         if (wadouris && wadouris.length > 0) {
           (async () => {
-            await viewport.setStack(wadouris);
+            // DICOM 이미지 불러오기
+            await viewport.setStack(wadouris, 0);
+            utilities.stackContextPrefetch.enable(viewerElement.current);
             setCurrentInstanceUUIDs(series.instances);
 
             // 이미지 ID 불러오기
             const imageId = viewport.getImageIds()[0];
             viewport.resetCamera();
-
-            // 가상 이미지 생성하기
-            const derivedImages =
-              imageLoader.createAndCacheDerivedImages(wadouris);
+            const image = await imageLoader.loadAndCacheImage(imageId);
 
             // DICOM 파일로부터 메타데이터 추출
             const studyDate = metaData.get(
@@ -139,79 +161,14 @@ const DicomViewer = memo(
                 metaData.get("generalStudyModule", imageId)?.studyDescription,
               ), // UTF-8 인코딩 변경
               modality: metaData.get("generalSeriesModule", imageId)?.modality,
-              size: `${derivedImages[0].width}X${derivedImages[0].height}`,
+              size: `${image.width}X${image.height}`,
             });
 
             viewport.render();
-            setIsRendered(true);
           })();
         }
       }
-      return () => {
-        segmentation.removeAllSegmentations();
-      };
-    }, [series, isInit, setIsRendered]);
-
-    // 세그멘테이션 렌더링
-    useEffect(() => {
-      (async () => {
-        const renderingEngine = getRenderingEngine(renderingEngineId);
-        if (!renderingEngine) {
-          console.log("렌더링 엔진을 가지고 오는데 실패했습니다.");
-          return;
-        }
-
-        const viewport = renderingEngine.getViewport(
-          viewportId,
-        ) as StackViewport;
-        if (!viewport) {
-          console.log("뷰포트를 가져오는 데 실패했습니다.");
-          return;
-        }
-
-        if (segmentationData.length <= 0) {
-          return;
-        }
-
-        const currentImageIds = viewport.getImageIds();
-        const derivedImages =
-          imageLoader.createAndCacheDerivedImages(currentImageIds);
-        const derivedImageData =
-          derivedImages[0].getPixelData() as Float32Array;
-        const externalPixelDataArrays = new Float32Array(
-          segmentationData.flat(),
-        );
-        derivedImageData.set(externalPixelDataArrays);
-
-        if (
-          segmentation.getActiveSegmentation(viewportId)?.segmentationId !==
-          labelSegmentationId
-        ) {
-          segmentation.addSegmentations([
-            {
-              segmentationId: labelSegmentationId,
-              representation: {
-                // The type of segmentation
-                type: csToolsEnums.SegmentationRepresentations.Labelmap,
-                data: {
-                  imageIds: derivedImages.map((image) => image.imageId),
-                },
-              },
-            },
-          ]);
-
-          segmentation.addSegmentationRepresentations(viewportId, [
-            {
-              segmentationId: labelSegmentationId,
-              type: csToolsEnums.SegmentationRepresentations.Labelmap,
-            },
-          ]);
-        }
-
-        console.log("재렌더링 중");
-        viewport.render();
-      })();
-    }, [segmentationData]);
+    }, [series, isCornerstoneInit, setCurrentInstanceUUIDs, setMetadata]);
 
     return <div className="h-screen w-screen" ref={viewerElement}></div>;
   },

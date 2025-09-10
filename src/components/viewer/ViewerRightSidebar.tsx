@@ -16,6 +16,9 @@ import { getSession } from "next-auth/react";
 import { Textarea } from "../ui/textarea";
 import { ViewerMetadata } from "@/types/viewer/metadata";
 import { GraphDialog } from "./GraphDialog";
+import Loading from "../Loading";
+import { segmentationRender } from "@/lib/dicom";
+import { ResponseSkinDiagnosis } from "@/types/viewer/response";
 
 interface ModelInfo {
   id: string;
@@ -26,6 +29,7 @@ interface ModelInfo {
 
 // Helper function to render UI based on selected model
 const renderModelControls = (
+  isPending: boolean,
   selectedModel: ModelInfo,
   labeldString?: string,
 ) => {
@@ -39,7 +43,7 @@ const renderModelControls = (
         ></Textarea>
       )}
       <Button className="w-full" onClick={() => selectedModel.handler()}>
-        요청하기
+        {isPending ? <Loading /> : "요청하기"}
       </Button>
     </div>
   );
@@ -57,10 +61,8 @@ export function ViewerRightSidebar({
   instanceUUIDs,
   isCollapsed,
   metadata,
-  setSegmentationData,
   toggleSidebar,
 }: ViewerRightSidebarProps) {
-  const [isGraphDialogOpen, setIsGraphDialogOpen] = useState(false);
   const modelInfos: ModelInfo[] = [
     {
       id: "model1",
@@ -82,16 +84,20 @@ export function ViewerRightSidebar({
           const data = {
             instanceUUID: instanceUUIDs[0],
           };
+
+          setIsPending(true);
           const res = await axios.post("/x-ray/segmentation-array", data, {
             headers: {
               Authorization: `Bearer ${session?.accessToken}`,
             },
           });
 
-          setSegmentationData(res.data.data);
+          segmentationRender(res.data.data);
         } catch (error) {
           console.log(error);
           console.log("요청이 실패했습니다.");
+        } finally {
+          setIsPending(false);
         }
       },
     },
@@ -116,16 +122,21 @@ export function ViewerRightSidebar({
             instanceUUID: instanceUUIDs[0],
             description: metadata.studyDescription,
           };
+
+          setIsPending(true);
           const res = await axios.post("/x-ray/captioning", data, {
             headers: {
               Authorization: `Bearer ${session?.accessToken}`,
             },
           });
+          setIsPending(false);
 
-          setLabeledLabeledString(res.data.transcript as string);
+          setLabeledString(res.data.transcript as string);
         } catch (error) {
           console.log(error);
           console.log("요청이 실패했습니다.");
+        } finally {
+          setIsPending(false);
         }
       },
     },
@@ -146,8 +157,9 @@ export function ViewerRightSidebar({
         }
 
         try {
+          setIsGraphDialogOpen(true);
           const data = {
-            AppendicitisUuidList: instanceUUIDs,
+            appendicitisUuidList: instanceUUIDs,
           };
           const res = await axios.post("/appendicitis/diagnosis", data, {
             headers: {
@@ -155,36 +167,60 @@ export function ViewerRightSidebar({
             },
           });
 
-          setGraphData(res.data);
-          setIsGraphDialogOpen(true);
+          setGraphData(res.data.concept_scores);
         } catch (error) {
           console.log(error);
           console.log("요청이 실패했습니다.");
+          setIsGraphDialogOpen(false);
         }
       },
     },
     {
       id: "model4",
-      name: "진단 결과 그래프",
+      name: "피부 질환 분류",
       type: "button",
-      handler: () => {
-        setGraphData({
-          "Appendix visible": 0.4842538833618164,
-          "Free fluid": 0.5486456155776978,
-          "Irregular layers": 0.5130040645599365,
-          "Target sign": 0.5186954140663147,
-          "Tissue reaction": 0.5172619819641113,
-          Lymphadenitis: 0.4826461970806122,
-          "Thick bowel wall": 0.5349217653274536,
-          Coprostasis: 0.5136037468910217,
-          Meteorism: 0.4546169936656952,
-        });
+      handler: async () => {
+        if (!instanceUUIDs || instanceUUIDs.length <= 0) {
+          console.log("인스턴스 UUID가 유효하지 않습니다.");
+          return;
+        }
+
+        const session = await getSession();
+        if (!session?.accessToken) {
+          console.log("세션이 없습니다.");
+          return;
+        }
+
+        try {
+          setIsGraphDialogOpen(true);
+          const body = {
+            instanceUUID: instanceUUIDs[0],
+          };
+          const { data } = await axios.post<ResponseSkinDiagnosis>(
+            "/skin-trouble/prediction",
+            body,
+            {
+              headers: {
+                Authorization: `Bearer ${session?.accessToken}`,
+              },
+            },
+          );
+
+          setGraphData(data.prediction);
+          setLabeledString(data.label);
+        } catch (error) {
+          console.log(error);
+          console.log("요청이 실패했습니다.");
+          setIsGraphDialogOpen(false);
+        }
       },
     },
   ];
 
+  const [isGraphDialogOpen, setIsGraphDialogOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState("model1");
-  const [labeledString, setLabeledLabeledString] = useState("");
+  const [labeledString, setLabeledString] = useState("");
   const [graphData, setGraphData] = useState<Record<string, number> | null>(
     null,
   );
@@ -232,6 +268,7 @@ export function ViewerRightSidebar({
 
             {/* Conditionally rendered UI for the selected model */}
             {renderModelControls(
+              isPending,
               modelInfos.find(
                 (modelInfo) => modelInfo.id === selectedModelId,
               ) || modelInfos[0],
@@ -246,9 +283,14 @@ export function ViewerRightSidebar({
         </div>
       )}
       <GraphDialog
+        label={labeledString}
         data={graphData}
         isOpen={isGraphDialogOpen}
-        onClose={() => setIsGraphDialogOpen(false)}
+        onClose={() => {
+          setGraphData(null);
+          setIsGraphDialogOpen(false);
+          setLabeledString("");
+        }}
       />
     </aside>
   );
