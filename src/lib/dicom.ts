@@ -1,7 +1,16 @@
-import { renderingEngineId, viewportId } from "@/types/viewer/constant";
-import { getRenderingEngine } from "@cornerstonejs/core";
+import {
+  labelSegmentationId,
+  renderingEngineId,
+  viewportId,
+} from "@/types/viewer/constant";
+import {
+  getRenderingEngine,
+  imageLoader,
+  StackViewport,
+} from "@cornerstonejs/core";
 import { VOILUTFunctionType } from "@cornerstonejs/core/enums";
 import { PixelDataTypedArray } from "@cornerstonejs/core/types";
+import { segmentation, Enums as csToolsEnums } from "@cornerstonejs/tools";
 import dicomParser from "dicom-parser";
 
 export function convertToImage(
@@ -219,4 +228,69 @@ export function getRenderedInfo() {
     console.log("뷰포트가 없습니다.");
     return;
   }
+}
+
+// 세그멘테이션 렌더링 함수 - AI 요청에 대한 출력
+export function segmentationRender(segmentationData: number[][]) {
+  const renderingEngine = getRenderingEngine(renderingEngineId);
+  if (!renderingEngine) {
+    console.log("렌더링 엔진을 가지고 오는데 실패했습니다.");
+    return;
+  }
+
+  const viewport = renderingEngine.getViewport(viewportId) as StackViewport;
+  if (!viewport) {
+    console.log("뷰포트를 가져오는 데 실패했습니다.");
+    return;
+  }
+
+  // 세그멘테이션 기능 위한 레이어 추가
+  if (segmentation.state.getSegmentation(labelSegmentationId)) {
+    console.log(`${labelSegmentationId}가 이미 존재합니다.`);
+    segmentation.removeSegmentation(labelSegmentationId);
+    segmentation.removeLabelmapRepresentation(viewportId, labelSegmentationId);
+  }
+
+  const baseImageId = viewport.getImageIds()[0];
+  console.log("1. Base imageId:", baseImageId);
+  const derviedImage =
+    imageLoader.createAndCacheDerivedLabelmapImage(baseImageId);
+  console.log("2. Derived image:", derviedImage?.imageId);
+
+  const labelPixel = derviedImage.getPixelData() as Uint8Array;
+  const externalPixelDataArrays = new Uint8Array(segmentationData.flat());
+  labelPixel.set(externalPixelDataArrays);
+
+  segmentation.addSegmentations([
+    {
+      segmentationId: labelSegmentationId,
+      representation: {
+        type: csToolsEnums.SegmentationRepresentations.Labelmap,
+        data: {
+          imageIds: [derviedImage.imageId],
+        },
+      },
+    },
+  ]);
+
+  console.log(
+    "4. Segmentation added:",
+    segmentation.state.getSegmentation(labelSegmentationId),
+  );
+
+  segmentation.addLabelmapRepresentationToViewport(viewportId, [
+    {
+      segmentationId: labelSegmentationId,
+      type: csToolsEnums.SegmentationRepresentations.Labelmap,
+    },
+  ]);
+  console.log(
+    "5. Representation added:",
+    segmentation.state.getSegmentationRepresentations(viewportId),
+  );
+
+  const viewportProperties = viewport.getProperties();
+  console.log("Viewport window/level:", viewportProperties);
+
+  viewport.render();
 }

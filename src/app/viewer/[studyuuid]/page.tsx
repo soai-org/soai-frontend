@@ -39,16 +39,11 @@ function ViewerPage({ params }: ViewerPageProps) {
   // 현재 시리즈 ID 값
   const [currentSeriesId, setCurrentSeriesId] = useState<string | null>(null);
 
-  // 처음 viewport로 이미지가 렌더링 되었을 때 -> Toolbar 초기화에 사용
-  const [isRendered, setIsRendered] = useState(false);
-
   // 이미지 메타데이터 상태값 관리
   const [metadata, setMetadata] = useState<ViewerMetadata>(metadataInit);
 
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
-
-  const [toolGroup, setToolGroup] = useState<IToolGroup | null>(null);
 
   const { data: seriesList, isLoading: isSeriesLoading } = useSeriesByStudyUUID(
     {
@@ -63,11 +58,7 @@ function ViewerPage({ params }: ViewerPageProps) {
 
   return (
     <div className="relative h-screen dark:bg-gray-900">
-      <ViewerToolbar
-        toolGroup={toolGroup}
-        setToolGroup={setToolGroup}
-        isViewportInit={isRendered}
-      />
+      <ViewerToolbar />
       <Suspense>
         <ViewerLeftSidebar
           metadata={metadata}
@@ -95,8 +86,6 @@ function ViewerPage({ params }: ViewerPageProps) {
               series={seriesList.find(
                 (series) => series.id === currentSeriesId,
               )}
-              setToolGroup={setToolGroup}
-              setIsRendered={setIsRendered}
               setMetadata={setMetadata}
             />
           )}
