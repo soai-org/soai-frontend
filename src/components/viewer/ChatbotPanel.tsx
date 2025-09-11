@@ -6,6 +6,9 @@ import { Input } from "../ui/input";
 import { Send, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChatbotAsk } from "@/query/ai/chatbot";
+import axios from "@/query/axios";
+import { getSession } from "next-auth/react";
+import { useChatStore } from "@/store/chat";
 
 interface Message {
   id: string;
@@ -16,30 +19,85 @@ interface Message {
 }
 
 export function ChatbotPanel() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      content:
-        "안녕하세요! 보조 진단 챗봇입니다. 궁금한 점이 있으시면 언제든 물어보세요.",
-      isUser: false,
-      isError: false,
-      timestamp: new Date(),
-    },
-  ]);
+  const { messages, addMessages, buffer, setBuffer } = useChatStore();
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const { mutateAsync: ask, isPending } = useChatbotAsk();
+
+  const weboscketRef = useRef<WebSocket>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
+    weboscketRef.current = new WebSocket("ws://localhost:8080/ws");
+
+    weboscketRef.current.onopen = async function () {
+      console.log("WebSocket 연결됨");
+    };
+
+    weboscketRef.current.onmessage = (event) => {
+      const message = event.data as string;
+      if (message.includes("--- 스트리밍 완료 ---")) {
+        const { buffer } = useChatStore.getState();
+        addMessages({
+          id: Date.now().toString(),
+          content: buffer,
+          isUser: false,
+          isError: false,
+          timestamp: new Date(),
+        });
+      } else if (message.startsWith("🚀 WebSocket 연결 성공!")) {
+      } else if (message.startsWith("🚀 LLM 스트리밍 WebSocket 연결 성공!")) {
+      } else if (message.startsWith("🔑 클라이언트 ID: ")) {
+        setClientId(message.replace("🔑 클라이언트 ID: ", ""));
+      } else if (message.startsWith("### 질문:")) {
+      } else {
+        setBuffer(event.data);
+      }
+    };
+
+    weboscketRef.current.onclose = () => {
+      console.log("WebSocket 연결 종료");
+      weboscketRef.current = null;
+      if (!buffer) {
+        console.log("전달받은 답변이 없습니다.");
+        return;
+      }
+    };
+
+    weboscketRef.current.onerror = (error) => {
+      console.log(error);
+      weboscketRef.current = null;
+      const ErrorDisplay: Message = {
+        id: Date.now().toString(),
+        content: "오류, 질문을 다시 해주세요.",
+        isUser: false,
+        isError: true,
+        timestamp: new Date(),
+      };
+      addMessages(ErrorDisplay);
+    };
+
+    return () => {
+      weboscketRef.current?.close();
+    };
+  }, []);
+
+  useEffect(() => {
     scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    console.log(messages);
   }, [messages]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
+    if (!weboscketRef.current) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -49,8 +107,7 @@ export function ChatbotPanel() {
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
+    addMessages(userMessage);
 
     // 간단한 자동 응답 (실제로는 API 호출로 대체)
     try {
@@ -62,7 +119,7 @@ export function ChatbotPanel() {
         isError: false,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, chatbotResponse]);
+      addMessages(chatbotResponse);
     } catch (error) {
       console.log(error);
 
@@ -73,14 +130,54 @@ export function ChatbotPanel() {
         isError: true,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, ErrorDisplay]);
+      addMessages(ErrorDisplay);
+    }
+  };
+
+  const handleSendMessageWithWebsocket = async () => {
+    if (!inputValue.trim()) return;
+
+    if (!weboscketRef.current) return;
+
+    const session = await getSession();
+    if (!session) {
+      console.log("인증 세션이 없습니다.");
+      return;
+    }
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: inputValue,
+      isUser: true,
+      isError: false,
+      timestamp: new Date(),
+    };
+
+    addMessages(userMessage);
+    setInputValue("");
+
+    try {
+      await axios.post(
+        "/api/fastapi/websocket/llm/start",
+        {
+          clientId,
+          prompt: inputValue,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        },
+      );
+    } catch (error) {
+      console.log(error);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      handleSendMessageWithWebsocket();
     }
   };
 
@@ -115,6 +212,18 @@ export function ChatbotPanel() {
             </div>
           </div>
         ))}
+        {buffer ? (
+          <div
+            className={cn(
+              "max-w-[80%] p-3 rounded-lg text-sm",
+              "bg-gray-700 text-white",
+            )}
+          >
+            {buffer}
+          </div>
+        ) : (
+          <></>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -130,7 +239,7 @@ export function ChatbotPanel() {
             disabled={isPending}
           />
           <Button
-            onClick={handleSendMessage}
+            onClick={handleSendMessageWithWebsocket}
             size="icon"
             className="bg-primary hover:bg-primary/90"
             disabled={!inputValue.trim()}
