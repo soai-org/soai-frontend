@@ -2,20 +2,20 @@
 
 import { getSession, useSession } from "next-auth/react";
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { init as csCoreInit, metaData } from "@cornerstonejs/core";
+import { init as csCoreInit } from "@cornerstonejs/core";
 import { init as csToolInit } from "@cornerstonejs/tools";
 
 export const CornerstoneContext = createContext(false);
 
-metaData.addProvider((type) => {
-  if (type === "imagePlaneModule") {
-    return {
-      imageOrientationPatient: [1, 0, 0, 0, 1, 0],
-    };
-  }
+// metaData.addProvider((type) => {
+//   if (type === "imagePlaneModule") {
+//     return {
+//       imageOrientationPatient: [1, 0, 0, 0, 1, 0],
+//     };
+//   }
 
-  return undefined;
-});
+//   return undefined;
+// });
 
 export function CornerstoneProvider({ children }: { children: ReactNode }) {
   const [isInit, setInit] = useState(false);
