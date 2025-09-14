@@ -51,7 +51,7 @@ const DicomViewer = memo(
       }
 
       const setup = () => {
-        if (!viewerElement.current) {
+        if (!isCornerstoneInit || !viewerElement.current) {
           return;
         }
 
@@ -94,80 +94,83 @@ const DicomViewer = memo(
 
       return () => {
         try {
-          ToolGroupManager.destroyToolGroup(toolGroupId);
           segmentation.removeAllSegmentationRepresentations();
           segmentation.removeAllSegmentations();
           const renderingEngine = getRenderingEngine(renderingEngineId);
           renderingEngine?.destroy();
+          ToolGroupManager.destroyToolGroup(toolGroupId);
         } catch (e) {
           console.error("Error during cleanup:", e);
         }
       };
-    }, [viewerElement]);
+    }, [isCornerstoneInit]);
 
     // 이미지 메타데이터 출력 로직
     useEffect(() => {
-      if (isCornerstoneInit && series && series.instances.length > 0) {
-        const renderingEngine = getRenderingEngine(renderingEngineId);
-        if (!renderingEngine) {
-          console.log("렌더링 엔진을 가지고 오는데 실패했습니다.");
-          return;
-        }
+      if (!isCornerstoneInit || !series || series.instances.length <= 0) {
+        return;
+      }
 
-        const viewport = renderingEngine.getViewport(
-          viewportId,
-        ) as StackViewport;
-        if (!viewport) {
-          console.log("뷰포트를 가져오는 데 실패했습니다.");
-          return;
-        }
+      const renderingEngine = getRenderingEngine(renderingEngineId);
+      if (!renderingEngine) {
+        console.log("렌더링 엔진을 가지고 오는데 실패했습니다.");
+        return;
+      }
 
-        const wadouris = series?.instances.map(
+      const viewport = renderingEngine.getViewport(viewportId) as StackViewport;
+      if (!viewport) {
+        console.log("뷰포트를 가져오는 데 실패했습니다.");
+        return;
+      }
+
+      const load = async () => {
+        // DICOM 이미지 불러오기
+        const wadouris = series.instances.map(
           (instance) =>
             `wadouri://${process.env.NEXT_PUBLIC_SPRING_SERVER}/api/viewer/dicomfile?instanceUuid=${instance}`,
         );
 
-        // const wadouris = [`wadouri://localhost:4000/dummy.dcm`];
+        await viewport.setStack(wadouris, 0);
+        utilities.stackContextPrefetch.enable(viewerElement.current);
+        setCurrentInstanceUUIDs(series.instances);
 
-        if (wadouris && wadouris.length > 0) {
-          (async () => {
-            // DICOM 이미지 불러오기
-            await viewport.setStack(wadouris, 0);
-            utilities.stackContextPrefetch.enable(viewerElement.current);
-            setCurrentInstanceUUIDs(series.instances);
+        // 이미지 ID 불러오기
+        const imageId = viewport.getImageIds()[0];
+        viewport.resetCamera();
 
-            // 이미지 ID 불러오기
-            const imageId = viewport.getImageIds()[0];
-            viewport.resetCamera();
-            const image = await imageLoader.loadAndCacheImage(imageId);
+        const image = viewport.getCornerstoneImage();
 
-            // DICOM 파일로부터 메타데이터 추출
-            const studyDate = metaData.get(
-              "generalStudyModule",
-              imageId,
-            )?.studyDate;
-            const studyTime = metaData.get(
-              "generalStudyModule",
-              imageId,
-            )?.studyTime;
+        // DICOM 파일로부터 메타데이터 추출
+        const studyDate = metaData.get(
+          "generalStudyModule",
+          imageId,
+        )?.studyDate;
+        const studyTime = metaData.get(
+          "generalStudyModule",
+          imageId,
+        )?.studyTime;
 
-            setMetadata({
-              patientName: fixBrokenUtf8(
-                metaData.get("patientModule", imageId)?.patientName,
-              ), // UTF-8 인코딩 변경
-              patientId: metaData.get("patientModule", imageId)?.patientID,
-              studyDate: `${studyDate.year}-${studyDate.month}-${studyDate.day} ${formatTime(studyTime)}`,
-              studyDescription: fixBrokenUtf8(
-                metaData.get("generalStudyModule", imageId)?.studyDescription,
-              ), // UTF-8 인코딩 변경
-              modality: metaData.get("generalSeriesModule", imageId)?.modality,
-              size: `${image.width}X${image.height}`,
-            });
+        const derviedImage =
+          imageLoader.createAndCacheDerivedLabelmapImage(imageId);
+        console.log("2. Derived image:", derviedImage.imageId);
 
-            viewport.render();
-          })();
-        }
-      }
+        viewport.render();
+
+        setMetadata({
+          patientName: fixBrokenUtf8(
+            metaData.get("patientModule", imageId)?.patientName,
+          ), // UTF-8 인코딩 변경
+          patientId: metaData.get("patientModule", imageId)?.patientID,
+          studyDate: `${studyDate.year}-${studyDate.month}-${studyDate.day} ${formatTime(studyTime)}`,
+          studyDescription: fixBrokenUtf8(
+            metaData.get("generalStudyModule", imageId)?.studyDescription,
+          ), // UTF-8 인코딩 변경
+          modality: metaData.get("generalSeriesModule", imageId)?.modality,
+          size: `${image.width}X${image.height}`,
+        });
+      };
+
+      load();
     }, [series, isCornerstoneInit, setCurrentInstanceUUIDs, setMetadata]);
 
     return <div className="h-screen w-screen" ref={viewerElement}></div>;

@@ -30,7 +30,7 @@ export function ViewerLeftSidebar({
   onSeriesSelect,
 }: ViewerLeftSidebarProps) {
   useEffect(() => {
-    if (seriesList) {
+    if (seriesList && seriesList.length > 0) {
       onSeriesSelect(seriesList[0].id);
     }
   }, [seriesList, onSeriesSelect]);

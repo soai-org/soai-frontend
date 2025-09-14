@@ -231,7 +231,7 @@ export function getRenderedInfo() {
 }
 
 // 세그멘테이션 렌더링 함수 - AI 요청에 대한 출력
-export function segmentationRender(segmentationData: number[][]) {
+export async function segmentationRender(segmentationData: number[][]) {
   const renderingEngine = getRenderingEngine(renderingEngineId);
   if (!renderingEngine) {
     console.log("렌더링 엔진을 가지고 오는데 실패했습니다.");
@@ -251,8 +251,10 @@ export function segmentationRender(segmentationData: number[][]) {
     segmentation.removeLabelmapRepresentation(viewportId, labelSegmentationId);
   }
 
-  const baseImageId = viewport.getImageIds()[0];
+  const baseImage = viewport.getCornerstoneImage();
+  const baseImageId = baseImage.imageId;
   console.log("1. Base imageId:", baseImageId);
+
   const derviedImage =
     imageLoader.createAndCacheDerivedLabelmapImage(baseImageId);
   console.log("2. Derived image:", derviedImage?.imageId);
