@@ -33,7 +33,9 @@ export function ChatbotPanel() {
   };
 
   const connectWebsocket = () => {
-    const websocket = new WebSocket("ws://localhost:8080/ws");
+    const websocket = new WebSocket(
+      `ws://${process.env.NEXT_PUBLIC_SPRING_SERVER}/ws`,
+    );
 
     websocket.onopen = async function () {
       console.log("WebSocket 연결됨");
