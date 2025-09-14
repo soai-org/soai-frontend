@@ -32,14 +32,14 @@ export function ChatbotPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    weboscketRef.current = new WebSocket("ws://localhost:8080/ws");
+  const connectWebsocket = () => {
+    const websocket = new WebSocket("ws://localhost:8080/ws");
 
-    weboscketRef.current.onopen = async function () {
+    websocket.onopen = async function () {
       console.log("WebSocket 연결됨");
     };
 
-    weboscketRef.current.onmessage = (event) => {
+    websocket.onmessage = (event) => {
       const message = event.data as string;
       if (message.includes("--- 스트리밍 완료 ---")) {
         const { buffer } = useChatStore.getState();
@@ -60,16 +60,17 @@ export function ChatbotPanel() {
       }
     };
 
-    weboscketRef.current.onclose = () => {
+    websocket.onclose = () => {
       console.log("WebSocket 연결 종료");
       weboscketRef.current = null;
+      setClientId(null);
       if (!buffer) {
         console.log("전달받은 답변이 없습니다.");
         return;
       }
     };
 
-    weboscketRef.current.onerror = (error) => {
+    websocket.onerror = (error) => {
       console.log(error);
       weboscketRef.current = null;
       const ErrorDisplay: Message = {
@@ -81,6 +82,12 @@ export function ChatbotPanel() {
       };
       addMessages(ErrorDisplay);
     };
+
+    return websocket;
+  };
+
+  useEffect(() => {
+    weboscketRef.current = connectWebsocket();
 
     return () => {
       weboscketRef.current?.close();
@@ -95,6 +102,7 @@ export function ChatbotPanel() {
     console.log(messages);
   }, [messages]);
 
+  // 기존 한꺼번에 반환하는 LLM 핸들러
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
     if (!weboscketRef.current) return;
@@ -134,10 +142,24 @@ export function ChatbotPanel() {
     }
   };
 
+  // Websocekt 이용 실시간 LLM 답변 핸들러
   const handleSendMessageWithWebsocket = async () => {
     if (!inputValue.trim()) return;
 
-    if (!weboscketRef.current) return;
+    if (!weboscketRef.current) {
+      const errorMessage = "연결을 재설정합니다.";
+      console.log(errorMessage);
+      const ErrorDisplay: Message = {
+        id: Date.now().toString(),
+        content: errorMessage,
+        isUser: false,
+        isError: true,
+        timestamp: new Date(),
+      };
+      addMessages(ErrorDisplay);
+      weboscketRef.current = connectWebsocket();
+      return;
+    }
 
     const session = await getSession();
     if (!session) {
