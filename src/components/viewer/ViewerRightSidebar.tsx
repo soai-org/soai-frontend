@@ -167,7 +167,9 @@ export function ViewerRightSidebar({
             },
           });
 
+          const appendcitisProbability = res.data.appendcitis_probability;
           setGraphData(res.data.concept_scores);
+          setLabeledString(`충수염 확률: ${appendcitisProbability}`);
         } catch (error) {
           console.log(error);
           console.log("요청이 실패했습니다.");
